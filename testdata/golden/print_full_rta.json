@@ -1,0 +1,50 @@
+{
+  "language": "go",
+  "symbol_table": {
+    "language": "go",
+    "packages": []
+  },
+  "call_graph": {
+    "language": "go",
+    "nodes": [
+      {
+        "id": "fmt.Println",
+        "pos": {
+          "file": "$GOROOT/src/fmt/print.go",
+          "line": 313,
+          "column": 1
+        }
+      },
+      {
+        "id": "github.com/codellm-devkit/codeanalyzer-go/testdata/print.hello",
+        "pos": {
+          "file": "C://Users//ka-tu//Desktop//Tesi//codeanalyzer-go//testdata//print//main.go",
+          "line": 10,
+          "column": 6
+        }
+      },
+      {
+        "id": "github.com/codellm-devkit/codeanalyzer-go/testdata/print.main",
+        "pos": {
+          "file": "C://Users//ka-tu//Desktop//Tesi//codeanalyzer-go//testdata//print//main.go",
+          "line": 5,
+          "column": 6
+        }
+      }
+    ],
+    "edges": [
+      {
+        "src": "github.com/codellm-devkit/codeanalyzer-go/testdata/print.hello",
+        "dst": "fmt.Println"
+      },
+      {
+        "src": "github.com/codellm-devkit/codeanalyzer-go/testdata/print.main",
+        "dst": "fmt.Println"
+      },
+      {
+        "src": "github.com/codellm-devkit/codeanalyzer-go/testdata/print.main",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/print.hello"
+      }
+    ]
+  }
+}

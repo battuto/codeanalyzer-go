@@ -1,0 +1,1946 @@
+{
+  "language": "go",
+  "call_graph": {
+    "language": "go",
+    "nodes": [
+      {
+        "id": "ECDH[*crypto/internal/fips140/nistec.P256Point]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "ECDH[*crypto/internal/fips140/nistec.P384Point]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "ECDH[*crypto/internal/fips140/nistec.P521Point]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "Greet",
+        "pos": {
+          "file": "C://Users//ka-tu//Desktop//Tesi//codeanalyzer-go//testdata//iface//main.go",
+          "line": 9,
+          "column": 10
+        }
+      },
+      {
+        "id": "SignDeterministic[*crypto/internal/fips140/nistec.P224Point hash.Hash]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "SignDeterministic[*crypto/internal/fips140/nistec.P256Point hash.Hash]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "SignDeterministic[*crypto/internal/fips140/nistec.P384Point hash.Hash]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "SignDeterministic[*crypto/internal/fips140/nistec.P521Point hash.Hash]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "Sign[*crypto/internal/fips140/nistec.P224Point hash.Hash]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "Sign[*crypto/internal/fips140/nistec.P256Point hash.Hash]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "Sign[*crypto/internal/fips140/nistec.P384Point hash.Hash]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "Sign[*crypto/internal/fips140/nistec.P521Point hash.Hash]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "Verify[*crypto/internal/fips140/nistec.P224Point]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "Verify[*crypto/internal/fips140/nistec.P256Point]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "Verify[*crypto/internal/fips140/nistec.P384Point]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "Verify[*crypto/internal/fips140/nistec.P521Point]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "context.cancel$1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/cryptotest.mustPanic",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/ecdh.ECDH",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/ecdsa.Sign",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/ecdsa.SignDeterministic",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/ecdsa.Verify",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/ecdsa.randomPoint",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/ed25519.VerifyCtx",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/ed25519.VerifyPH",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/ed25519.sign",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/ed25519.signCtx",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/ed25519.signPH",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/ed25519.verify",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/rsa.DecryptOAEP",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/rsa.EncryptOAEP",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/rsa.SignPKCS1v15",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/rsa.SignPSS",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/rsa.VerifyPKCS1v15",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/internal/fips140/rsa.verifyPSS",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/subtle.WithDataIndependentTiming",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/tls.(*crypto/tls.Conn).handshakeContext",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/tls.(*crypto/tls.QUICConn).Close",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "crypto/tls.dial",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "database/sql.(*database/sql.DB).Close",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "database/sql.(*database/sql.DB).putConn",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "database/sql.(*database/sql.Rows).close",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "database/sql.(*database/sql.Tx).Commit",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "database/sql.(*database/sql.Tx).grabConn",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "database/sql.(*database/sql.Tx).rollback",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "database/sql.convertAssignRows$2",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "database/sql.withLock",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "flag.(*flag.FlagSet).usage",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "flag.commandLineUsage",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "fmt.Println",
+        "pos": {
+          "file": "$GOROOT/src/fmt/print.go",
+          "line": 313,
+          "column": 1
+        }
+      },
+      {
+        "id": "fmt.init",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.(github.com/codellm-devkit/codeanalyzer-go/testdata/iface.A).Greet",
+        "pos": {
+          "file": "C://Users//ka-tu//Desktop//Tesi//codeanalyzer-go//testdata//iface//main.go",
+          "line": 9,
+          "column": 10
+        }
+      },
+      {
+        "id": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.(github.com/codellm-devkit/codeanalyzer-go/testdata/iface.B).Greet",
+        "pos": {
+          "file": "C://Users//ka-tu//Desktop//Tesi//codeanalyzer-go//testdata//iface//main.go",
+          "line": 13,
+          "column": 10
+        }
+      },
+      {
+        "id": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.init",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main",
+        "pos": {
+          "file": "C://Users//ka-tu//Desktop//Tesi//codeanalyzer-go//testdata//iface//main.go",
+          "line": 15,
+          "column": 6
+        }
+      },
+      {
+        "id": "go/build.(*go/build.Context).Import",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "go/build.Import$3",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "go/internal/gcimporter.readUnifiedPackage",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "go/types.(*go/types.Checker).processDelayed",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "hash/crc32.ChecksumIEEE",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "hash/crc32.MakeTable",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "hash/crc32.New",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "hash/crc32.update",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "hash/crc64.MakeTable",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "hash/crc64.update",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "internal/fuzz.(*internal/fuzz.worker).minimize",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "internal/fuzz.(*internal/fuzz.workerServer).fuzz",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "internal/fuzz.(*internal/fuzz.workerServer).minimize",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "internal/fuzz.CoordinateFuzzing",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "internal/fuzz.CoordinateFuzzing$1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "internal/runtime/exithook.Add",
+        "pos": {
+          "file": "$GOROOT/src/sync/mutex.go",
+          "line": 64,
+          "column": 19856
+        }
+      },
+      {
+        "id": "internal/runtime/exithook.Run",
+        "pos": {
+          "file": "$GOROOT/src/sync/mutex.go",
+          "line": 64,
+          "column": 20231
+        }
+      },
+      {
+        "id": "internal/synctest.(*internal/synctest.Bubble).Run",
+        "pos": {
+          "file": "$GOROOT/src/sync/mutex.go",
+          "line": 64,
+          "column": 24061
+        }
+      },
+      {
+        "id": "internal/syscall/windows.SupportTCPKeepAliveCount",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "internal/syscall/windows.SupportTCPKeepAliveIdle",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "internal/syscall/windows.SupportTCPKeepAliveInterval",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "internal/testenv.CommandContext$2",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "internal/trace/traceviewer.(*internal/trace/traceviewer.Emitter).Flush",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "math/big/internal/asmgen.(*math/big/internal/asmgen.Pipe).unroll",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "mime.initMime",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net.(*net.Dialer).DialContext",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net.(*net.Resolver).exchange",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net.(*net.Resolver).lookupIPAddr",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net.(*net.sysDialer).dialParallel",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net.(*net.sysDialer).dialSerial",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net.DialContext$1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net.init#1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net.lookupIPAddr$2",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.Request).write",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.Server).Shutdown",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.Transport).dialConn",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.Transport).dialConnFor",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.Transport).queueForDial",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.Transport).roundTrip",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.body).readLocked",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.cancelTimerBody).Close",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.conn).serve",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.connReader).handleReadErrorLocked",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.http2ClientConn).Shutdown",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.http2ClientConn).healthCheck",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.http2Server).serveConn",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.http2pipe).Read",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.http2serverConn).closeStream",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.http2serverConn).processResetStream",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.http2serverConn).serve",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.persistConn).readLoop",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.persistConn).readResponse",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.persistConn).roundTrip",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(*net/http.timeoutHandler).ServeHTTP",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.(net/http.checkConnErrorWriter).Write",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.CloseIdleConnections$1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.addTLS$2",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.http2ConfigureServer$1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.http2traceFirstResponseByte",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.http2traceGot100Continue",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.http2traceWait100Continue",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.http2traceWroteHeaders",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.runHandler$1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.send",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.serve$1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.setRequestCancel$3",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http.setRequestCancel$4",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http/httputil.(*net/http/httputil.ReverseProxy).ServeHTTP",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "net/http/httputil.ServeHTTP$1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "os/signal.(*os/signal.signalCtx).stop",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "os/signal.Notify$1$1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "os/signal.NotifyContext$1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "randomPoint[*crypto/internal/fips140/nistec.P224Point]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "randomPoint[*crypto/internal/fips140/nistec.P256Point]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "randomPoint[*crypto/internal/fips140/nistec.P384Point]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "randomPoint[*crypto/internal/fips140/nistec.P521Point]",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "runtime.(*runtime.godebugInc).IncNonDefault",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "runtime.Goexit",
+        "pos": {
+          "file": "$GOROOT/src/os/file.go",
+          "line": 725,
+          "column": 63242
+        }
+      },
+      {
+        "id": "runtime.Pin$1",
+        "pos": {
+          "file": "$GOROOT/src/time/time.go",
+          "line": 1795,
+          "column": 24914
+        }
+      },
+      {
+        "id": "runtime.clearpools",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "runtime.debugCallWrap2",
+        "pos": {
+          "file": "$GOROOT/src/time/format_rfc3339.go",
+          "line": 62,
+          "column": 17676
+        }
+      },
+      {
+        "id": "runtime.deferreturn",
+        "pos": {
+          "file": "$GOROOT/src/os/file.go",
+          "line": 725,
+          "column": 62485
+        }
+      },
+      {
+        "id": "runtime.doInit1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "runtime.gopanic",
+        "pos": {
+          "file": "$GOROOT/src/syscall/net.go",
+          "line": 26,
+          "column": 1827
+        }
+      },
+      {
+        "id": "runtime.main",
+        "pos": {
+          "file": "$GOROOT/src/sync/atomic/doc.go",
+          "line": 215,
+          "column": 49072
+        }
+      },
+      {
+        "id": "runtime.mstart1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "runtime.recv",
+        "pos": {
+          "file": "$GOROOT/src/sync/atomic/type.go",
+          "line": 249,
+          "column": 11056
+        }
+      },
+      {
+        "id": "runtime.runCleanups",
+        "pos": {
+          "file": "$GOROOT/src/internal/poll/fd_posix.go",
+          "line": 56,
+          "column": 45447
+        }
+      },
+      {
+        "id": "runtime.send",
+        "pos": {
+          "file": "$GOROOT/src/sync/atomic/type.go",
+          "line": 249,
+          "column": 165
+        }
+      },
+      {
+        "id": "runtime.synctest_inBubble",
+        "pos": {
+          "file": "$GOROOT/src/time/format_rfc3339.go",
+          "line": 62,
+          "column": 54978
+        }
+      },
+      {
+        "id": "runtime.tryRecordGoroutineProfile",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "runtime/pprof.(*runtime/pprof.profileBuilder).pbSample",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "runtime/trace.WithRegion",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "sync.(*sync.Once).doSlow",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "sync.Go$1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "sync.OnceFunc$1$1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "testing.(*testing.M).Run",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "testing.(*testing.common).runCleanup",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "testing.AllocsPerRun",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "testing.Cleanup$1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "testing.runExample",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "testing/internal/testdeps.(testing/internal/testdeps.TestDeps).CoordinateFuzzing",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "testing/internal/testdeps.(testing/internal/testdeps.TestDeps).RunFuzzWorker",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "time.goFunc",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "vendor/golang.org/x/net/nettest.timeoutWrapper$1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      },
+      {
+        "id": "vendor/golang.org/x/net/nettest.timeoutWrapper$2$1",
+        "pos": {
+          "file": "",
+          "line": 0,
+          "column": 0
+        }
+      }
+    ],
+    "edges": [
+      {
+        "src": "ECDH[*crypto/internal/fips140/nistec.P256Point]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "ECDH[*crypto/internal/fips140/nistec.P384Point]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "ECDH[*crypto/internal/fips140/nistec.P521Point]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "Greet",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.(github.com/codellm-devkit/codeanalyzer-go/testdata/iface.A).Greet"
+      },
+      {
+        "src": "Greet",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.(github.com/codellm-devkit/codeanalyzer-go/testdata/iface.B).Greet"
+      },
+      {
+        "src": "SignDeterministic[*crypto/internal/fips140/nistec.P224Point hash.Hash]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "SignDeterministic[*crypto/internal/fips140/nistec.P256Point hash.Hash]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "SignDeterministic[*crypto/internal/fips140/nistec.P384Point hash.Hash]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "SignDeterministic[*crypto/internal/fips140/nistec.P521Point hash.Hash]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "Sign[*crypto/internal/fips140/nistec.P224Point hash.Hash]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "Sign[*crypto/internal/fips140/nistec.P256Point hash.Hash]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "Sign[*crypto/internal/fips140/nistec.P384Point hash.Hash]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "Sign[*crypto/internal/fips140/nistec.P521Point hash.Hash]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "Verify[*crypto/internal/fips140/nistec.P224Point]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "Verify[*crypto/internal/fips140/nistec.P256Point]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "Verify[*crypto/internal/fips140/nistec.P384Point]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "Verify[*crypto/internal/fips140/nistec.P521Point]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "context.cancel$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/cryptotest.mustPanic",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/ecdh.ECDH",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/ecdsa.Sign",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/ecdsa.SignDeterministic",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/ecdsa.Verify",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/ecdsa.randomPoint",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/ed25519.VerifyCtx",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/ed25519.VerifyPH",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/ed25519.sign",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/ed25519.signCtx",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/ed25519.signPH",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/ed25519.verify",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/rsa.DecryptOAEP",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/rsa.EncryptOAEP",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/rsa.SignPKCS1v15",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/rsa.SignPSS",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/rsa.VerifyPKCS1v15",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/internal/fips140/rsa.verifyPSS",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/subtle.WithDataIndependentTiming",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/tls.(*crypto/tls.Conn).handshakeContext",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/tls.(*crypto/tls.QUICConn).Close",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "crypto/tls.dial",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "database/sql.(*database/sql.DB).Close",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "database/sql.(*database/sql.DB).putConn",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "database/sql.(*database/sql.Rows).close",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "database/sql.(*database/sql.Tx).Commit",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "database/sql.(*database/sql.Tx).grabConn",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "database/sql.(*database/sql.Tx).rollback",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "database/sql.convertAssignRows$2",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "database/sql.withLock",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "flag.(*flag.FlagSet).usage",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "flag.commandLineUsage",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.(github.com/codellm-devkit/codeanalyzer-go/testdata/iface.A).Greet",
+        "dst": "fmt.Println"
+      },
+      {
+        "src": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.(github.com/codellm-devkit/codeanalyzer-go/testdata/iface.B).Greet",
+        "dst": "fmt.Println"
+      },
+      {
+        "src": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.init",
+        "dst": "fmt.init"
+      },
+      {
+        "src": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main",
+        "dst": "Greet"
+      },
+      {
+        "src": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.(github.com/codellm-devkit/codeanalyzer-go/testdata/iface.A).Greet"
+      },
+      {
+        "src": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.(github.com/codellm-devkit/codeanalyzer-go/testdata/iface.B).Greet"
+      },
+      {
+        "src": "go/build.(*go/build.Context).Import",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "go/build.Import$3",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "go/internal/gcimporter.readUnifiedPackage",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "go/types.(*go/types.Checker).processDelayed",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "hash/crc32.ChecksumIEEE",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "hash/crc32.MakeTable",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "hash/crc32.New",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "hash/crc32.update",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "hash/crc64.MakeTable",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "hash/crc64.update",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "internal/fuzz.(*internal/fuzz.worker).minimize",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "internal/fuzz.(*internal/fuzz.workerServer).fuzz",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "internal/fuzz.(*internal/fuzz.workerServer).minimize",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "internal/fuzz.CoordinateFuzzing",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "internal/fuzz.CoordinateFuzzing$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "internal/runtime/exithook.Add",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "internal/runtime/exithook.Run",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "internal/synctest.(*internal/synctest.Bubble).Run",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "internal/syscall/windows.SupportTCPKeepAliveCount",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "internal/syscall/windows.SupportTCPKeepAliveIdle",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "internal/syscall/windows.SupportTCPKeepAliveInterval",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "internal/testenv.CommandContext$2",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "internal/trace/traceviewer.(*internal/trace/traceviewer.Emitter).Flush",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "math/big/internal/asmgen.(*math/big/internal/asmgen.Pipe).unroll",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "mime.initMime",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net.(*net.Dialer).DialContext",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net.(*net.Resolver).exchange",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net.(*net.Resolver).lookupIPAddr",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net.(*net.sysDialer).dialParallel",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net.(*net.sysDialer).dialSerial",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net.DialContext$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net.init#1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net.lookupIPAddr$2",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.Request).write",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.Server).Shutdown",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.Transport).dialConn",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.Transport).dialConnFor",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.Transport).queueForDial",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.Transport).roundTrip",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.body).readLocked",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.cancelTimerBody).Close",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.conn).serve",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.connReader).handleReadErrorLocked",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.http2ClientConn).Shutdown",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.http2ClientConn).healthCheck",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.http2Server).serveConn",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.http2pipe).Read",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.http2serverConn).closeStream",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.http2serverConn).processResetStream",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.http2serverConn).serve",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.persistConn).readLoop",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.persistConn).readResponse",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.persistConn).roundTrip",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(*net/http.timeoutHandler).ServeHTTP",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.(net/http.checkConnErrorWriter).Write",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.CloseIdleConnections$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.addTLS$2",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.http2ConfigureServer$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.http2traceFirstResponseByte",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.http2traceGot100Continue",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.http2traceWait100Continue",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.http2traceWroteHeaders",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.runHandler$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.send",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.serve$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.setRequestCancel$3",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http.setRequestCancel$4",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http/httputil.(*net/http/httputil.ReverseProxy).ServeHTTP",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "net/http/httputil.ServeHTTP$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "os/signal.(*os/signal.signalCtx).stop",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "os/signal.Notify$1$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "os/signal.NotifyContext$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "randomPoint[*crypto/internal/fips140/nistec.P224Point]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "randomPoint[*crypto/internal/fips140/nistec.P256Point]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "randomPoint[*crypto/internal/fips140/nistec.P384Point]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "randomPoint[*crypto/internal/fips140/nistec.P521Point]",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime.(*runtime.godebugInc).IncNonDefault",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime.Goexit",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime.Pin$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime.clearpools",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime.debugCallWrap2",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime.deferreturn",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime.doInit1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime.gopanic",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime.main",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime.mstart1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime.recv",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime.runCleanups",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime.send",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime.synctest_inBubble",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime.tryRecordGoroutineProfile",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime/pprof.(*runtime/pprof.profileBuilder).pbSample",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "runtime/trace.WithRegion",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "sync.(*sync.Once).doSlow",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "sync.Go$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "sync.OnceFunc$1$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "testing.(*testing.M).Run",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "testing.(*testing.common).runCleanup",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "testing.AllocsPerRun",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "testing.Cleanup$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "testing.runExample",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "testing/internal/testdeps.(testing/internal/testdeps.TestDeps).CoordinateFuzzing",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "testing/internal/testdeps.(testing/internal/testdeps.TestDeps).RunFuzzWorker",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "time.goFunc",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "vendor/golang.org/x/net/nettest.timeoutWrapper$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      },
+      {
+        "src": "vendor/golang.org/x/net/nettest.timeoutWrapper$2$1",
+        "dst": "github.com/codellm-devkit/codeanalyzer-go/testdata/iface.main"
+      }
+    ]
+  }
+}

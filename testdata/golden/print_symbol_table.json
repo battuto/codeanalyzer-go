@@ -1,0 +1,51 @@
+{
+  "language": "go",
+  "symbol_table": {
+    "language": "go",
+    "packages": [
+      {
+        "path": "main",
+        "files": [
+          {
+            "path": "main.go"
+          }
+        ],
+        "imports": [
+          {
+            "path": "fmt"
+          }
+        ],
+        "types": [],
+        "functions": [
+          {
+            "name": "dead",
+            "signature": "func dead()",
+            "pos": {
+              "file": "C://Users//ka-tu//Desktop//Tesi//codeanalyzer-go//testdata//print//main.go",
+              "line": 15,
+              "column": 1
+            }
+          },
+          {
+            "name": "hello",
+            "signature": "func hello()",
+            "pos": {
+              "file": "C://Users//ka-tu//Desktop//Tesi//codeanalyzer-go//testdata//print//main.go",
+              "line": 10,
+              "column": 1
+            }
+          },
+          {
+            "name": "main",
+            "signature": "func main()",
+            "pos": {
+              "file": "C://Users//ka-tu//Desktop//Tesi//codeanalyzer-go//testdata//print//main.go",
+              "line": 5,
+              "column": 1
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

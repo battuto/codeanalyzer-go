@@ -1,0 +1,14 @@
+# Editor/IDE
+.idea/
+.vscode/
+
+# Built binaries
+bin/
+
+# Test artifacts
+**/*.got
+
+# OS junk
+.DS_Store
+Thumbs.db
+
