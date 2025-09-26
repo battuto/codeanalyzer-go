@@ -35,7 +35,7 @@ L’output JSON rispetta rigidamente lo schema definito in `pkg/schema/schema.go
 Windows (cmd.exe):
 ```bat
 cd /d C:\Users\ka-tu\Desktop\Tesi\codeanalyzer-go
-go build -o bin\codeanalyzer-go .\cmd\codeanalyzer-go
+go build -o bin\codeanalyzer-go.exe .\cmd\codeanalyzer-go
 ```
 
 Linux/macOS:
@@ -44,11 +44,18 @@ cd codeanalyzer-go
 go build -o bin/codeanalyzer-go ./cmd/codeanalyzer-go
 ```
 
+Nota: su Windows il binario generato ha estensione `.exe`.
+
 ## Utilizzo
 
 Sintassi generale:
 ```text
 codeanalyzer-go --root <path> --mode symbol-table|call-graph|full --cg cha|rta --out - [altri flag]
+```
+
+Esecuzione rapida senza build (Windows, cmd.exe):
+```bat
+go run .\cmd\codeanalyzer-go\ --root sampleapp --mode full --cg rta --emit-positions detailed --out -
 ```
 
 Flag supportate (compatibili e retro-compatibili):
@@ -66,29 +73,28 @@ Variabili d’ambiente:
 
 ## Esempi veloci
 
-Esempio con il progetto di esempio `sampleapp/` incluso nella repo.
-
 Windows (cmd.exe):
 ```bat
 cd /d C:\Users\ka-tu\Desktop\Tesi\codeanalyzer-go
-bin\codeanalyzer-go --root sampleapp --mode symbol-table --out -
 
-bin\codeanalyzer-go --root sampleapp --mode call-graph --cg cha --emit-positions detailed --out -
+:: Esecuzione senza build (consigliato in sviluppo)
+go run .\cmd\codeanalyzer-go\ --root sampleapp --mode full --cg rta --emit-positions detailed --out -
 
-bin\codeanalyzer-go --root sampleapp --mode call-graph --cg rta --emit-positions minimal --only-pkg example.com/sampleapp --out -
-
-bin\codeanalyzer-go --root sampleapp --mode full --cg rta --out -
+:: In alternativa, usando il binario buildato
+bin\codeanalyzer-go.exe --root sampleapp --mode symbol-table --out -
+bin\codeanalyzer-go.exe --root sampleapp --mode call-graph --cg cha --emit-positions detailed --out -
+bin\codeanalyzer-go.exe --root sampleapp --mode call-graph --cg rta --emit-positions minimal --only-pkg example.com/sampleapp --out -
 ```
 
 Linux/macOS:
 ```bash
+# Esecuzione senza build
+go run ./cmd/codeanalyzer-go --root sampleapp --mode full --cg rta --emit-positions detailed --out -
+
+# In alternativa, usando il binario
 bin/codeanalyzer-go --root sampleapp --mode symbol-table --out -
-
 bin/codeanalyzer-go --root sampleapp --mode call-graph --cg cha --emit-positions detailed --out -
-
 bin/codeanalyzer-go --root sampleapp --mode call-graph --cg rta --emit-positions minimal --only-pkg example.com/sampleapp --out -
-
-bin/codeanalyzer-go --root sampleapp --mode full --cg rta --out -
 ```
 
 Suggerimenti:
