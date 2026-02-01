@@ -1,45 +1,313 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"time"
 
-	"golang.org/x/tools/go/packages"
-
-	"github.com/codellm-devkit/codeanalyzer-go/internal/astx"
+	"github.com/codellm-devkit/codeanalyzer-go/internal/callgraph"
 	"github.com/codellm-devkit/codeanalyzer-go/internal/loader"
-	"github.com/codellm-devkit/codeanalyzer-go/pkg/emit"
+	"github.com/codellm-devkit/codeanalyzer-go/internal/output"
+	"github.com/codellm-devkit/codeanalyzer-go/internal/symbols"
 	"github.com/codellm-devkit/codeanalyzer-go/pkg/schema"
 )
 
-type flags struct {
-	root          string
-	mode          string
-	out           string
-	cg            string
-	includeTest   bool
+const (
+	version = "2.0.0"
+
+	// Analysis levels
+	levelSymbolTable = "symbol_table"
+	levelCallGraph   = "call_graph"
+	levelPDG         = "pdg"
+	levelSDG         = "sdg"
+	levelFull        = "full"
+)
+
+type config struct {
+	// Flag principali CLDK
+	input         string
+	outputDir     string
+	format        string
+	analysisLevel string
+
+	// Flag avanzati
+	cgAlgo        string
+	includeTests  bool
 	excludeDirs   string
 	onlyPkg       string
 	emitPositions string
+	includeBody   bool
+	verbose       bool
+	quiet         bool
+	showVersion   bool
+
+	// Flag legacy (retrocompatibilità)
+	root string
+	mode string
+	out  string
 }
 
-func parseFlags() flags {
-	var f flags
-	flag.StringVar(&f.root, "root", ".", "root folder of the Go project to analyze")
-	flag.StringVar(&f.mode, "mode", "full", "analysis mode: symbol-table|call-graph|full")
-	flag.StringVar(&f.out, "out", "-", "output path or '-' for STDOUT")
-	flag.StringVar(&f.cg, "cg", "cha", "callgraph algo: cha|rta")
-	flag.BoolVar(&f.includeTest, "include-test", false, "include *_test.go files")
-	flag.StringVar(&f.excludeDirs, "exclude-dirs", "", "comma-separated directory basenames to exclude (e.g., vendor,.git)")
-	flag.StringVar(&f.onlyPkg, "only-pkg", "", "comma-separated package path filters to include (substring match)")
-	flag.StringVar(&f.emitPositions, "emit-positions", "detailed", "positions verbosity: detailed|minimal")
-	flag.Parse()
-	return f
+func main() {
+	cfg := parseFlags()
+
+	// Gestisci --version
+	if cfg.showVersion {
+		fmt.Printf("codeanalyzer-go %s\n", version)
+		os.Exit(0)
+	}
+
+	// Retrocompatibilità: mappa flag legacy a nuovi flag
+	cfg = handleLegacyFlags(cfg)
+
+	// Valida configurazione
+	if err := validateConfig(&cfg); err != nil {
+		logError("configuration error: %v", err)
+		os.Exit(2)
+	}
+
+	// Esegui analisi
+	if err := runAnalysis(cfg); err != nil {
+		logError("analysis error: %v", err)
+		os.Exit(1)
+	}
 }
+
+func parseFlags() config {
+	var cfg config
+
+	// Flag principali CLDK
+	flag.StringVar(&cfg.input, "input", ".", "Path to the root of the Go project to analyze")
+	flag.StringVar(&cfg.input, "i", ".", "Path to the root of the Go project to analyze (shorthand)")
+	flag.StringVar(&cfg.outputDir, "output", "", "Output directory (omit for stdout)")
+	flag.StringVar(&cfg.outputDir, "o", "", "Output directory (shorthand)")
+	flag.StringVar(&cfg.format, "format", "json", "Output format: json|msgpack")
+	flag.StringVar(&cfg.format, "f", "json", "Output format (shorthand)")
+	flag.StringVar(&cfg.analysisLevel, "analysis-level", "full", "Analysis level: symbol_table|call_graph|pdg|sdg|full")
+	flag.StringVar(&cfg.analysisLevel, "a", "full", "Analysis level (shorthand)")
+
+	// Flag avanzati
+	flag.StringVar(&cfg.cgAlgo, "cg", "rta", "Call graph algorithm: cha|rta")
+	flag.BoolVar(&cfg.includeTests, "include-tests", false, "Include *_test.go files in analysis")
+	flag.StringVar(&cfg.excludeDirs, "exclude-dirs", "", "Comma-separated directory basenames to exclude (e.g., vendor,.git)")
+	flag.StringVar(&cfg.onlyPkg, "only-pkg", "", "Comma-separated package path filters (substring match)")
+	flag.StringVar(&cfg.emitPositions, "emit-positions", "detailed", "Position verbosity: detailed|minimal")
+	flag.BoolVar(&cfg.includeBody, "include-body", false, "Include function body information")
+	flag.BoolVar(&cfg.verbose, "verbose", false, "Enable verbose logging to stderr")
+	flag.BoolVar(&cfg.verbose, "v", false, "Enable verbose logging (shorthand)")
+	flag.BoolVar(&cfg.quiet, "quiet", false, "Suppress all non-error output")
+	flag.BoolVar(&cfg.quiet, "q", false, "Suppress non-error output (shorthand)")
+	flag.BoolVar(&cfg.showVersion, "version", false, "Show version and exit")
+
+	// Flag legacy (retrocompatibilità deprecata)
+	flag.StringVar(&cfg.root, "root", "", "[DEPRECATED] Use --input instead")
+	flag.StringVar(&cfg.mode, "mode", "", "[DEPRECATED] Use --analysis-level instead")
+	flag.StringVar(&cfg.out, "out", "", "[DEPRECATED] Use --output instead")
+	// Alias per retrocompatibilità con vecchio flag
+	flag.BoolVar(&cfg.includeTests, "include-test", false, "[DEPRECATED] Use --include-tests instead")
+
+	flag.Parse()
+	return cfg
+}
+
+func handleLegacyFlags(cfg config) config {
+	// --root → --input
+	if cfg.root != "" {
+		logWarning("--root is deprecated, use --input instead")
+		if cfg.input == "." {
+			cfg.input = cfg.root
+		}
+	}
+
+	// --mode → --analysis-level
+	if cfg.mode != "" {
+		logWarning("--mode is deprecated, use --analysis-level instead")
+		if cfg.analysisLevel == "full" {
+			// Mappa vecchi mode a nuovi
+			switch cfg.mode {
+			case "symbol-table":
+				cfg.analysisLevel = levelSymbolTable
+			case "call-graph":
+				cfg.analysisLevel = levelCallGraph
+			case "full":
+				cfg.analysisLevel = levelFull
+			default:
+				cfg.analysisLevel = cfg.mode
+			}
+		}
+	}
+
+	// --out → --output
+	if cfg.out != "" {
+		logWarning("--out is deprecated, use --output instead")
+		if cfg.outputDir == "" {
+			// Il vecchio --out era un file path, non una directory
+			if cfg.out != "-" {
+				cfg.outputDir = filepath.Dir(cfg.out)
+			}
+		}
+	}
+
+	return cfg
+}
+
+func validateConfig(cfg *config) error {
+	// Valida input path
+	absInput, err := filepath.Abs(cfg.input)
+	if err != nil {
+		return fmt.Errorf("invalid input path: %w", err)
+	}
+	cfg.input = absInput
+
+	// Verifica che input esista
+	if _, err := os.Stat(cfg.input); os.IsNotExist(err) {
+		return fmt.Errorf("input path does not exist: %s", cfg.input)
+	}
+
+	// Valida analysis level
+	validLevels := map[string]bool{
+		levelSymbolTable: true,
+		levelCallGraph:   true,
+		levelPDG:         true,
+		levelSDG:         true,
+		levelFull:        true,
+	}
+	if !validLevels[cfg.analysisLevel] {
+		return fmt.Errorf("invalid analysis-level: %s (valid: symbol_table, call_graph, pdg, sdg, full)", cfg.analysisLevel)
+	}
+
+	// Valida format
+	if cfg.format != "json" && cfg.format != "msgpack" {
+		return fmt.Errorf("invalid format: %s (valid: json, msgpack)", cfg.format)
+	}
+
+	// Valida cg algorithm
+	cgAlgo := strings.ToLower(cfg.cgAlgo)
+	if cgAlgo != "cha" && cgAlgo != "rta" {
+		return fmt.Errorf("invalid cg algorithm: %s (valid: cha, rta)", cfg.cgAlgo)
+	}
+	cfg.cgAlgo = cgAlgo
+
+	// Valida emit-positions
+	if cfg.emitPositions != "detailed" && cfg.emitPositions != "minimal" {
+		return fmt.Errorf("invalid emit-positions: %s (valid: detailed, minimal)", cfg.emitPositions)
+	}
+
+	return nil
+}
+
+func runAnalysis(cfg config) error {
+	startTime := time.Now()
+
+	logVerbose(cfg, "Starting analysis...")
+	logVerbose(cfg, "  Input: %s", cfg.input)
+	logVerbose(cfg, "  Level: %s", cfg.analysisLevel)
+	logVerbose(cfg, "  Algorithm: %s", cfg.cgAlgo)
+	logVerbose(cfg, "  Go version: %s", runtime.Version())
+
+	// Determina se serve SSA
+	needSSA := cfg.analysisLevel == levelCallGraph || cfg.analysisLevel == levelFull
+
+	// Carica pacchetti
+	loaderOpts := loader.Options{
+		IncludeTest: cfg.includeTests,
+		ExcludeDirs: splitCSV(cfg.excludeDirs),
+		OnlyPkg:     splitCSV(cfg.onlyPkg),
+		NeedSSA:     needSSA,
+	}
+
+	logVerbose(cfg, "Loading packages...")
+	result, err := loader.LoadWithSSA(cfg.input, loaderOpts)
+	if err != nil {
+		return fmt.Errorf("load packages: %w", err)
+	}
+	logVerbose(cfg, "Loaded %d packages", len(result.Packages))
+
+	// Inizializza analisi CLDK
+	analysis := &schema.CLDKAnalysis{
+		Metadata: schema.Metadata{
+			Analyzer:      "codeanalyzer-go",
+			Version:       version,
+			Language:      "go",
+			AnalysisLevel: cfg.analysisLevel,
+			Timestamp:     time.Now().UTC().Format(time.RFC3339),
+			ProjectPath:   cfg.input,
+			GoVersion:     runtime.Version(),
+		},
+		PDG:    nil,
+		SDG:    nil,
+		Issues: []schema.Issue{},
+	}
+
+	// Estrai symbol table se richiesto
+	if cfg.analysisLevel == levelSymbolTable || cfg.analysisLevel == levelFull {
+		logVerbose(cfg, "Extracting symbols...")
+		symbolCfg := symbols.ExtractConfig{
+			IncludeBody:      cfg.includeBody,
+			EmitPositions:    cfg.emitPositions,
+			IncludeCallSites: cfg.includeBody,
+		}
+		analysis.SymbolTable = symbols.Extract(result, symbolCfg)
+		logVerbose(cfg, "Extracted %d packages", len(analysis.SymbolTable.Packages))
+	}
+
+	// Costruisci call graph se richiesto
+	if cfg.analysisLevel == levelCallGraph || cfg.analysisLevel == levelFull {
+		logVerbose(cfg, "Building call graph with %s...", cfg.cgAlgo)
+		cgCfg := callgraph.Config{
+			Algorithm:     cfg.cgAlgo,
+			EmitPositions: cfg.emitPositions,
+			OnlyPkg:       splitCSV(cfg.onlyPkg),
+		}
+		cg, err := callgraph.Build(result, cgCfg)
+		if err != nil {
+			// Non bloccare, aggiungi issue
+			analysis.Issues = append(analysis.Issues, schema.Issue{
+				Severity: "warning",
+				Code:     "CALLGRAPH_ERROR",
+				Message:  fmt.Sprintf("Failed to build call graph: %v", err),
+			})
+			logWarning("call graph build failed: %v", err)
+		} else {
+			analysis.CallGraph = cg
+			logVerbose(cfg, "Call graph: %d nodes, %d edges", len(cg.Nodes), len(cg.Edges))
+		}
+	}
+
+	// PDG/SDG placeholder (non implementato)
+	if cfg.analysisLevel == levelPDG || cfg.analysisLevel == levelSDG {
+		analysis.Issues = append(analysis.Issues, schema.Issue{
+			Severity: "info",
+			Code:     "NOT_IMPLEMENTED",
+			Message:  fmt.Sprintf("%s analysis is not yet implemented", strings.ToUpper(cfg.analysisLevel)),
+		})
+	}
+
+	// Calcola durata
+	analysis.Metadata.AnalysisDurationMs = time.Since(startTime).Milliseconds()
+
+	// Scrivi output
+	logVerbose(cfg, "Writing output...")
+	outCfg := output.Config{
+		OutputDir: cfg.outputDir,
+		Format:    output.Format(cfg.format),
+		Indent:    true,
+	}
+	if err := output.Write(analysis, outCfg); err != nil {
+		return fmt.Errorf("write output: %w", err)
+	}
+
+	logVerbose(cfg, "Analysis completed in %dms", analysis.Metadata.AnalysisDurationMs)
+
+	return nil
+}
+
+// ============================================================================
+// Helper functions
+// ============================================================================
 
 func splitCSV(s string) []string {
 	if strings.TrimSpace(s) == "" {
@@ -56,144 +324,16 @@ func splitCSV(s string) []string {
 	return out
 }
 
-func main() {
-	f := parseFlags()
-
-	abs, err := filepath.Abs(f.root)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "resolve root: %v\n", err)
-		os.Exit(2)
+func logVerbose(cfg config, format string, args ...interface{}) {
+	if cfg.verbose && !cfg.quiet {
+		fmt.Fprintf(os.Stderr, "[info] "+format+"\n", args...)
 	}
-
-	ldOpts := loader.Options{
-		IncludeTest: f.includeTest,
-		ExcludeDirs: splitCSV(f.excludeDirs),
-		OnlyPkg:     splitCSV(f.onlyPkg),
-	}
-	prog, err := loader.LoadWithOptions(abs, ldOpts)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "load: %v\n", err)
-		os.Exit(2)
-	}
-
-	if os.Getenv("LOG_LEVEL") == "debug" {
-		fmt.Fprintf(os.Stderr, "[debug] root=%s mode=%s cg=%s include-test=%v emit-positions=%s\n", abs, f.mode, f.cg, f.includeTest, f.emitPositions)
-		fmt.Fprintf(os.Stderr, "[debug] exclude-dirs=%v only-pkg=%v files=%d\n", ldOpts.ExcludeDirs, ldOpts.OnlyPkg, len(prog.Files))
-		// Conta pacchetti via go/packages per il riepilogo
-		pkgs, _ := countPackages(abs, f.includeTest, ldOpts.ExcludeDirs, ldOpts.OnlyPkg)
-		fmt.Fprintf(os.Stderr, "[debug] pkgs=%d\n", pkgs)
-	}
-
-	var st *schema.SymbolTable
-	var cg *schema.CallGraph
-
-	switch f.mode {
-	case "symbol-table":
-		st = astx.ExtractSymbols(prog)
-	case "call-graph":
-		cg = buildCG(abs, f)
-	case "full":
-		st = astx.ExtractSymbols(prog)
-		cg = buildCG(abs, f)
-	default:
-		fmt.Fprintf(os.Stderr, "unknown mode: %s\n", f.mode)
-		os.Exit(2)
-	}
-
-	out := struct {
-		Language  string              `json:"language"`
-		Symbols   *schema.SymbolTable `json:"symbol_table,omitempty"`
-		CallGraph *schema.CallGraph   `json:"call_graph,omitempty"`
-	}{
-		Language:  "go",
-		Symbols:   st,
-		CallGraph: cg,
-	}
-
-	var w *os.File = os.Stdout
-	if f.out != "-" && f.out != "" {
-		fd, err := os.Create(f.out)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "open out: %v\n", err)
-			os.Exit(2)
-		}
-		defer fd.Close()
-		w = fd
-	}
-	enc := json.NewEncoder(w)
-	enc.SetIndent("", "  ")
-	if err := enc.Encode(out); err != nil {
-		fmt.Fprintf(os.Stderr, "encode: %v\n", err)
-		os.Exit(2)
-	}
-	_ = emit.Nop() // avoid import removal
 }
 
-func buildCG(root string, f flags) *schema.CallGraph {
-	cfg := astx.CallGraphConfig{
-		Root:          root,
-		Algo:          f.cg,
-		IncludeTest:   f.includeTest,
-		ExcludeDirs:   splitCSV(f.excludeDirs),
-		OnlyPkg:       splitCSV(f.onlyPkg),
-		EmitPositions: f.emitPositions,
-	}
-	cg, err := astx.BuildCallGraph(cfg)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "call-graph: %v\n", err)
-		// fallback a placeholder vuoto per non rompere lo schema
-		return &schema.CallGraph{Language: "go", Nodes: []schema.CGNode{}, Edges: []schema.CGEdge{}}
-	}
-	return cg
+func logWarning(format string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, "[warning] "+format+"\n", args...)
 }
 
-// countPackages carica pacchetti con go/packages e applica filtri base per ottenere un conteggio.
-func countPackages(root string, includeTest bool, excludeDirs, onlyPkg []string) (int, error) {
-	cfg := &packages.Config{
-		Mode:  packages.NeedName | packages.NeedFiles,
-		Dir:   root,
-		Tests: includeTest,
-		Env:   os.Environ(),
-	}
-	pkgs, err := packages.Load(cfg, "./...")
-	if err != nil {
-		return 0, err
-	}
-	// filtra
-	ex := map[string]struct{}{}
-	for _, d := range excludeDirs {
-		ex[strings.TrimSpace(d)] = struct{}{}
-	}
-	keep := func(p *packages.Package) bool {
-		if len(onlyPkg) > 0 {
-			ok := false
-			for _, s := range onlyPkg {
-				s = strings.TrimSpace(s)
-				if s != "" && strings.Contains(p.PkgPath, s) {
-					ok = true
-					break
-				}
-			}
-			if !ok {
-				return false
-			}
-		}
-		for _, f := range p.GoFiles {
-			base := filepath.Base(filepath.Dir(f))
-			if _, ok := ex[base]; ok {
-				return false
-			}
-		}
-		return true
-	}
-	count := 0
-	for _, p := range pkgs {
-		if p == nil {
-			continue
-		}
-		if keep(p) {
-			count++
-		}
-	}
-	return count, nil
+func logError(format string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, "[error] "+format+"\n", args...)
 }

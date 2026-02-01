@@ -1,118 +1,257 @@
 # codeanalyzer-go
 
-Analyzer Go compatibile con CodeLLM DevKit (CLDK) che emette Symbol Table e Call Graph in formato JSON stabile.
+[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://go.dev/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Panoramica
+**Static analyzer for Go projects**, compatible with [CodeLLM DevKit (CLDK)](https://github.com/codellm-devkit). Produces Symbol Table and Call Graph in stable JSON format.
 
-Questo tool analizza un progetto Go a partire da una root e produce:
-- Symbol Table: file, import, tipi (struct/interface/alias), funzioni/metodi con firma e posizione;
-- Call Graph: nodi (funzioni/metodi) ed archi (chiamate), costruito davvero con `golang.org/x/tools` (CHA o RTA).
+## ✨ Features
 
-L’output JSON rispetta rigidamente lo schema definito in `pkg/schema/schema.go` (nessuna modifica a campi/chiavi).
+- **Symbol Table Extraction**: packages, imports, types (struct/interface/alias), functions, methods, variables, constants
+- **Call Graph Construction**: using `golang.org/x/tools/go/ssa` with CHA or RTA algorithms
+- **CLDK Compatible**: output follows CLDK schema conventions for seamless integration
+- **Flexible Filtering**: exclude directories, filter by package path, include/exclude tests
+- **Position Tracking**: detailed or minimal source position information
 
-## Funzionalità
+## 📦 Installation
 
-- Caricamento progetto con `go/packages` (rispetta mod/workspace, GOOS/GOARCH, build tags).
-- SSA + Call Graph reali:
-  - CHA: conservative class-hierarchy analysis;
-  - RTA: rapid type analysis, più snello (raggiungibilità da `main`).
-- Posizioni nei sorgenti opzionali: dettagliate o minimali.
-- Filtri:
-  - `--exclude-dirs` per saltare directory (es. `vendor,.git`);
-  - `--only-pkg` per limitare a uno o più package path (substring match);
-  - `--include-test` per includere `*_test.go` (di default esclusi).
-- Robustezza/perf:
-  - ignora file con parse error ma continua;
-  - deduplica nodi/archi (map/set);
-  - carica la stdlib solo quando serve (RTA) per evitare panics e ridurre tempi.
+### Prerequisites
 
-## Requisiti
+This analyzer is designed to work with [CodeLLM DevKit (CLDK)](https://github.com/codellm-devkit/cldk). If you plan to use it with CLDK:
 
-- Go 1.21+ installato ed in `PATH`.
+1. First, fork/clone the CLDK repository:
+   ```bash
+   git clone https://github.com/codellm-devkit/cldk.git
+   ```
 
-## Build
+2. Then, fork/clone this analyzer (separate repository):
+   ```bash
+   git clone https://github.com/battuto/codeanalyzer-go.git
+   ```
 
-Windows (cmd.exe):
-```bat
-cd /d C:\Users\ka-tu\Desktop\Tesi\codeanalyzer-go
-go build -o bin\codeanalyzer-go.exe .\cmd\codeanalyzer-go
-```
+### Build from Source
 
-Linux/macOS:
 ```bash
 cd codeanalyzer-go
 go build -o bin/codeanalyzer-go ./cmd/codeanalyzer-go
 ```
 
-Nota: su Windows il binario generato ha estensione `.exe`.
+### Standalone Usage
 
-## Utilizzo
+You can also use this analyzer independently without CLDK:
 
-Sintassi generale:
-```text
-codeanalyzer-go --root <path> --mode symbol-table|call-graph|full --cg cha|rta --out - [altri flag]
-```
-
-Esecuzione rapida senza build (Windows, cmd.exe):
-```bat
-go run .\cmd\codeanalyzer-go\ --root sampleapp --mode full --cg rta --emit-positions detailed --out -
-```
-
-Flag supportate (compatibili e retro-compatibili):
-- `--root` (string): root del progetto da analizzare (default: `.`).
-- `--mode` (string): `symbol-table` | `call-graph` | `full` (default: `full`).
-- `--cg` (string): `cha` | `rta` (usato quando `mode` include il call-graph; default: `cha`).
-- `--out` (string): `-` per STDOUT (default) oppure path file.
-- `--include-test` (bool): include i file `*_test.go`.
-- `--exclude-dirs` (csv): directory da escludere per basename, es. `vendor,.git`.
-- `--only-pkg` (csv): include solo i package il cui path contiene uno di questi token.
-- `--emit-positions` (string): `detailed|minimal` (default: `detailed`).
-
-Variabili d’ambiente:
-- `LOG_LEVEL=debug`: stampa su STDERR un breve riepilogo (root, mode, cg, counts file/pkgs, versione go, OS/ARCH) senza inquinare STDOUT.
-
-## Esempi veloci
-
-Windows (cmd.exe):
-```bat
-cd /d C:\Users\ka-tu\Desktop\Tesi\codeanalyzer-go
-
-:: Esecuzione senza build (consigliato in sviluppo)
-go run .\cmd\codeanalyzer-go\ --root sampleapp --mode full --cg rta --emit-positions detailed --out -
-
-:: In alternativa, usando il binario buildato
-bin\codeanalyzer-go.exe --root sampleapp --mode symbol-table --out -
-bin\codeanalyzer-go.exe --root sampleapp --mode call-graph --cg cha --emit-positions detailed --out -
-bin\codeanalyzer-go.exe --root sampleapp --mode call-graph --cg rta --emit-positions minimal --only-pkg example.com/sampleapp --out -
-```
-
-Linux/macOS:
 ```bash
-# Esecuzione senza build
-go run ./cmd/codeanalyzer-go --root sampleapp --mode full --cg rta --emit-positions detailed --out -
-
-# In alternativa, usando il binario
-bin/codeanalyzer-go --root sampleapp --mode symbol-table --out -
-bin/codeanalyzer-go --root sampleapp --mode call-graph --cg cha --emit-positions detailed --out -
-bin/codeanalyzer-go --root sampleapp --mode call-graph --cg rta --emit-positions minimal --only-pkg example.com/sampleapp --out -
+go install github.com/battuto/codeanalyzer-go/cmd/codeanalyzer-go@latest
 ```
 
-Suggerimenti:
-- per avere un call-graph più “locale”, usa `--only-pkg <path_del_pacchetto>`;
-- se non ti servono le posizioni, `--emit-positions minimal` riduce l’output.
+## 🚀 Quick Start
 
-## Compatibilità schema JSON
+```bash
+# Analyze a project (full analysis to stdout)
+codeanalyzer-go --input /path/to/project
 
-Lo schema è definito in `pkg/schema/schema.go` e non viene modificato dal tool. Campi principali:
-- `SymbolTable`: `packages[]` con `files[]`, `imports[]`, `types[]`, `functions[]` (ognuno con `pos`).
-- `CallGraph`: `nodes[]` con `id` stabile (es. `pkg.Func`, `pkg.(T).Method`, `pkg.(*T).Method`) e `pos`, `edges[]` (`src`,`dst`).
+# Symbol table only
+codeanalyzer-go --input ./myproject --analysis-level symbol_table
 
-## Debug & Troubleshooting
+# Call graph with RTA algorithm
+codeanalyzer-go --input ./myproject --analysis-level call_graph --cg rta
 
-- Setta `LOG_LEVEL=debug` per vedere su STDERR riepiloghi utili (versione Go, OS/ARCH, conteggi, eventuali warning di `go/packages`).
-- Se il call-graph RTA risultasse vuoto, verifica che sotto `--root` ci sia un `main` eseguibile; RTA parte dalle radici `main`.
-- Su workspace grandi, usa `--exclude-dirs` (es. `vendor,.git`) e `--only-pkg` per ridurre la superficie.
+# Save output to directory
+codeanalyzer-go --input ./myproject --output ./output
+```
 
-## Licenza
+## 📖 CLI Reference
 
-Questo progetto è distribuito sotto licenza MIT. Vedi il file `LICENSE` per i dettagli.
+```
+codeanalyzer-go [flags]
+```
+
+### Main Flags
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--input` | `-i` | Path to Go project root | `.` |
+| `--output` | `-o` | Output directory (omit for stdout) | stdout |
+| `--analysis-level` | `-a` | Analysis level: `symbol_table`, `call_graph`, `full` | `full` |
+| `--cg` | | Call graph algorithm: `cha`, `rta` | `rta` |
+| `--format` | `-f` | Output format: `json` | `json` |
+
+### Filtering Flags
+
+| Flag | Description | Example |
+|------|-------------|---------|
+| `--include-tests` | Include `*_test.go` files | `--include-tests` |
+| `--exclude-dirs` | Comma-separated directories to exclude | `--exclude-dirs vendor,testdata` |
+| `--only-pkg` | Filter packages by path substring | `--only-pkg myapp/internal` |
+
+### Output Flags
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--emit-positions` | Position detail: `detailed`, `minimal` | `detailed` |
+| `--include-body` | Include function body information | `false` |
+| `--verbose`, `-v` | Enable verbose logging to stderr | `false` |
+| `--quiet`, `-q` | Suppress non-error output | `false` |
+| `--version` | Show version and exit | |
+
+## 📊 Output Schema
+
+The output follows CLDK conventions with this structure:
+
+```json
+{
+  "metadata": {
+    "analyzer": "codeanalyzer-go",
+    "version": "2.0.0",
+    "language": "go",
+    "analysis_level": "full",
+    "timestamp": "2026-02-01T12:00:00Z",
+    "project_path": "/path/to/project",
+    "go_version": "go1.21",
+    "analysis_duration_ms": 1234
+  },
+  "symbol_table": {
+    "packages": {
+      "example.com/myapp": {
+        "path": "example.com/myapp",
+        "name": "myapp",
+        "files": ["main.go", "util.go"],
+        "imports": [{"path": "fmt"}],
+        "type_declarations": {"example.com/myapp.Config": {...}},
+        "callable_declarations": {"example.com/myapp.main": {...}},
+        "variables": {...},
+        "constants": {...}
+      }
+    }
+  },
+  "call_graph": {
+    "algorithm": "rta",
+    "nodes": [{"id": "example.com/myapp.main", "kind": "function", ...}],
+    "edges": [{"source": "example.com/myapp.main", "target": "fmt.Println", "kind": "call"}]
+  },
+  "pdg": null,
+  "sdg": null,
+  "issues": []
+}
+```
+
+### Key Schema Conventions
+
+- **Maps, not arrays**: `packages`, `type_declarations`, `callable_declarations` are maps keyed by qualified name
+- **Qualified names**: Format is `pkg.Func` or `pkg.(*Type).Method`
+- **Positions**: Include `file`, `start_line`, `start_column`
+
+## 🔬 Call Graph Algorithms
+
+| Algorithm | Description | Best For |
+|-----------|-------------|----------|
+| **CHA** | Class Hierarchy Analysis - conservative, includes all possible call targets | Complete analysis, interface-heavy code |
+| **RTA** | Rapid Type Analysis - more precise, starts from `main()` | Focused analysis, smaller output |
+
+```bash
+# CHA (more conservative)
+codeanalyzer-go --input ./myapp --analysis-level call_graph --cg cha
+
+# RTA (more precise, requires main package)
+codeanalyzer-go --input ./myapp --analysis-level call_graph --cg rta
+```
+
+## 🐍 CLDK Python Integration
+
+```python
+from cldk.analysis import GoAnalyzer
+
+analyzer = GoAnalyzer()
+result = analyzer.analyze("/path/to/project", level="call_graph")
+
+# Access symbol table
+for pkg_path, pkg in result.symbol_table.packages.items():
+    print(f"Package: {pkg.name}")
+    for fn_name, fn in pkg.callable_declarations.items():
+        print(f"  Function: {fn.name} - {fn.signature}")
+
+# Access call graph
+for edge in result.call_graph.edges:
+    print(f"{edge.source} -> {edge.target}")
+```
+
+## 🧪 Testing
+
+```bash
+# Build the analyzer
+go build -o bin/codeanalyzer-go ./cmd/codeanalyzer-go
+
+# Run Go unit tests
+go test ./...
+
+# Run Python integration tests
+python tests/cldk_integration_test.py
+```
+
+## 🔄 Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | Success |
+| `1` | Analysis errors (partial results may be available) |
+| `2` | Configuration or validation errors |
+
+## ⚠️ Deprecated Flags (Legacy)
+
+The following flags are deprecated but still supported for backward compatibility:
+
+| Deprecated | Use Instead |
+|------------|-------------|
+| `--root` | `--input` |
+| `--mode` | `--analysis-level` |
+| `--out` | `--output` |
+| `--include-test` | `--include-tests` |
+
+## 🐛 Troubleshooting
+
+### Empty Call Graph with RTA
+
+RTA requires a `main` package as entry point. If your project is a library, use CHA instead:
+
+```bash
+codeanalyzer-go --input ./mylib --analysis-level call_graph --cg cha
+```
+
+### Large Projects
+
+For large codebases, use filters to reduce analysis scope:
+
+```bash
+codeanalyzer-go --input ./bigproject \
+  --exclude-dirs vendor,testdata,examples \
+  --only-pkg mycompany/bigproject/core
+```
+
+### Verbose Mode
+
+Enable verbose mode to see analysis progress:
+
+```bash
+codeanalyzer-go --input ./myproject --verbose
+```
+
+## 📁 Project Structure
+
+```
+codeanalyzer-go/
+├── cmd/codeanalyzer-go/    # CLI entry point
+├── internal/
+│   ├── loader/             # Package loading with SSA support
+│   ├── symbols/            # Symbol table extraction
+│   ├── callgraph/          # Call graph construction
+│   └── output/             # JSON output writer
+├── pkg/schema/             # CLDK schema definitions
+├── tests/                  # Integration tests
+└── sampleapp/              # Sample Go project for testing
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
