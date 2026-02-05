@@ -44,6 +44,18 @@ func Write(analysis *schema.CLDKAnalysis, cfg Config) error {
 
 // writeJSON scrive l'output in formato JSON.
 func writeJSON(analysis *schema.CLDKAnalysis, cfg Config) error {
+	return writeJSONGeneric(analysis, cfg)
+}
+
+// WriteCompact scrive l'analisi in formato compatto per LLM.
+// Usa indentazione per leggibilità.
+func WriteCompact(analysis *schema.CompactAnalysis, cfg Config) error {
+	cfg.Indent = true
+	return writeJSONGeneric(analysis, cfg)
+}
+
+// writeJSONGeneric scrive qualsiasi struttura in formato JSON.
+func writeJSONGeneric(data interface{}, cfg Config) error {
 	var w io.Writer
 
 	if cfg.OutputDir == "" {
@@ -72,7 +84,7 @@ func writeJSON(analysis *schema.CLDKAnalysis, cfg Config) error {
 	// Assicura che i caratteri speciali non siano escaped
 	enc.SetEscapeHTML(false)
 
-	if err := enc.Encode(analysis); err != nil {
+	if err := enc.Encode(data); err != nil {
 		return fmt.Errorf("encode json: %w", err)
 	}
 

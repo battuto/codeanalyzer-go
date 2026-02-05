@@ -4,6 +4,7 @@ package callgraph
 import (
 	"fmt"
 	"go/token"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -59,8 +60,24 @@ func Build(result *loader.LoadResult, cfg Config) (*schema.CLDKCallGraph, error)
 			cg = cha.CallGraph(prog)
 			algo = "cha-fallback"
 		} else {
-			res := rta.Analyze(roots, true)
-			cg = res.CallGraph
+			// RTA può andare in panic su tipi ricorsivi complessi.
+			// Usiamo defer/recover per catturare e fare fallback a CHA.
+			var panicMsg interface{}
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						panicMsg = r
+						// RTA panic, fallback a CHA
+						cg = cha.CallGraph(prog)
+						algo = "cha-fallback-panic"
+					}
+				}()
+				res := rta.Analyze(roots, true)
+				cg = res.CallGraph
+			}()
+			if panicMsg != nil {
+				fmt.Fprintf(os.Stderr, "RTA panic (fallback to CHA): %v\n", panicMsg)
+			}
 		}
 	default: // "cha"
 		cg = cha.CallGraph(prog)

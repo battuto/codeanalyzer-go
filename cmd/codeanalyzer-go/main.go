@@ -41,6 +41,7 @@ type config struct {
 	onlyPkg       string
 	emitPositions string
 	includeBody   bool
+	compact       bool
 	verbose       bool
 	quiet         bool
 	showVersion   bool
@@ -96,6 +97,8 @@ func parseFlags() config {
 	flag.StringVar(&cfg.onlyPkg, "only-pkg", "", "Comma-separated package path filters (substring match)")
 	flag.StringVar(&cfg.emitPositions, "emit-positions", "detailed", "Position verbosity: detailed|minimal")
 	flag.BoolVar(&cfg.includeBody, "include-body", false, "Include function body information")
+	flag.BoolVar(&cfg.compact, "compact", false, "Compact JSON output for LLM (reduces size ~70%)")
+	flag.BoolVar(&cfg.compact, "c", false, "Compact output (shorthand)")
 	flag.BoolVar(&cfg.verbose, "verbose", false, "Enable verbose logging to stderr")
 	flag.BoolVar(&cfg.verbose, "v", false, "Enable verbose logging (shorthand)")
 	flag.BoolVar(&cfg.quiet, "quiet", false, "Suppress all non-error output")
@@ -296,8 +299,18 @@ func runAnalysis(cfg config) error {
 		Format:    output.Format(cfg.format),
 		Indent:    true,
 	}
-	if err := output.Write(analysis, outCfg); err != nil {
-		return fmt.Errorf("write output: %w", err)
+
+	// Output compatto per LLM
+	if cfg.compact {
+		logVerbose(cfg, "Using compact output format for LLM")
+		compactOutput := schema.ToCompact(analysis)
+		if err := output.WriteCompact(compactOutput, outCfg); err != nil {
+			return fmt.Errorf("write compact output: %w", err)
+		}
+	} else {
+		if err := output.Write(analysis, outCfg); err != nil {
+			return fmt.Errorf("write output: %w", err)
+		}
 	}
 
 	logVerbose(cfg, "Analysis completed in %dms", analysis.Metadata.AnalysisDurationMs)

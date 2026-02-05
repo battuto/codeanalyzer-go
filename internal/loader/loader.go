@@ -3,6 +3,7 @@ package loader
 import (
 	"fmt"
 	"go/token"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -104,74 +105,115 @@ func LoadWithOptions(root string, opts Options) (*Program, error) {
 }
 
 // LoadWithSSA carica i pacchetti Go usando go/packages e opzionalmente costruisce SSA.
-func LoadWithSSA(root string, opts Options) (*LoadResult, error) {
-	root, err := filepath.Abs(root)
+func LoadWithSSA(rootPath string, opts Options) (*LoadResult, error) {
+	verbose := false // Could be added to Options if needed
+
+	// Convert to absolute path
+	absRoot, err := filepath.Abs(rootPath)
 	if err != nil {
-		return nil, fmt.Errorf("abs root: %w", err)
+		return nil, fmt.Errorf("failed to get absolute path: %w", err)
 	}
 
-	// Configura go/packages
+	// Use "./..." pattern to load all packages recursively
+	pattern := "./..."
+
 	cfg := &packages.Config{
 		Mode: packages.NeedName |
 			packages.NeedFiles |
 			packages.NeedCompiledGoFiles |
-			packages.NeedSyntax |
-			packages.NeedTypes |
-			packages.NeedTypesInfo |
-			packages.NeedTypesSizes |
 			packages.NeedImports |
-			packages.NeedModule |
-			packages.NeedDeps,
-		Dir:   root,
+			packages.NeedDeps |
+			packages.NeedTypes |
+			packages.NeedSyntax |
+			packages.NeedTypesInfo,
+		Dir: absRoot,
+		// Include test files if requested
 		Tests: opts.IncludeTest,
-		Env:   os.Environ(),
 	}
 
-	// Carica tutti i pacchetti sotto root
-	pkgs, err := packages.Load(cfg, "./...")
+	// Load all packages matching the pattern
+	pkgs, err := packages.Load(cfg, pattern)
 	if err != nil {
-		return nil, fmt.Errorf("packages.Load: %w", err)
+		return nil, fmt.Errorf("failed to load packages: %w", err)
 	}
 
-	// Log errori di caricamento (non bloccanti)
-	if n := packages.PrintErrors(pkgs); n > 0 {
-		if os.Getenv("LOG_LEVEL") == "debug" {
-			fmt.Fprintf(os.Stderr, "[debug] packages.Load reported %d issues\n", n)
+	if len(pkgs) == 0 {
+		return nil, fmt.Errorf("no packages found in %s", rootPath)
+	}
+
+	// Check for errors in loaded packages (log only, don't fail)
+	for _, pkg := range pkgs {
+		if len(pkg.Errors) > 0 {
+			for _, e := range pkg.Errors {
+				log.Printf("Package error in %s: %v", pkg.PkgPath, e)
+			}
 		}
 	}
 
-	// Recupera fset
+	// Filter out packages with errors and apply user filters
+	validPkgs := filterLoadedPackages(pkgs, opts.ExcludeDirs, opts.OnlyPkg)
+
+	if len(validPkgs) == 0 {
+		return nil, fmt.Errorf("no valid packages found (all had errors or were filtered)")
+	}
+
+	if verbose {
+		log.Printf("Loaded %d valid packages out of %d total", len(validPkgs), len(pkgs))
+	}
+
+	// Get FileSet from first package (all packages share the same FileSet)
 	var fset *token.FileSet
-	if len(pkgs) > 0 && pkgs[0].Fset != nil {
-		fset = pkgs[0].Fset
-	} else {
+	for _, pkg := range validPkgs {
+		if pkg.Fset != nil {
+			fset = pkg.Fset
+			break
+		}
+	}
+	if fset == nil {
 		fset = token.NewFileSet()
 	}
 
-	// Applica filtri exclude-dirs e only-pkg
-	pkgs = filterLoadedPackages(pkgs, opts.ExcludeDirs, opts.OnlyPkg)
-
 	result := &LoadResult{
-		Packages: pkgs,
+		Packages: validPkgs,
+		Root:     absRoot,
 		Fset:     fset,
-		Root:     root,
 	}
 
-	// Costruisci SSA se richiesto
+	// Build SSA if requested
 	if opts.NeedSSA {
-		// Raccogli tutti i pacchetti inclusi gli import
-		allPkgs := collectAllPackages(pkgs)
-		allPkgs = dedupPackages(allPkgs)
-
-		// Costruisci SSA
-		prog, ssaPkgs := ssautil.AllPackages(allPkgs, ssa.InstantiateGenerics)
-		prog.Build()
-
-		result.SSAProgram = prog
-		result.SSAPackages = ssaPkgs
+		result.SSAProgram, result.SSAPackages = buildSSAProgram(validPkgs, verbose)
 	}
 
 	return result, nil
+}
+
+// buildSSAProgram costruisce il programma SSA dai pacchetti caricati.
+func buildSSAProgram(pkgs []*packages.Package, verbose bool) (*ssa.Program, []*ssa.Package) {
+	if len(pkgs) == 0 {
+		return nil, nil
+	}
+
+	// Create SSA program from packages
+	// InstantiateGenerics è RICHIESTO per RTA: senza questo flag, RTA
+	// va in panic quando incontra tipi generici (TypeParam).
+	// Vedi: https://github.com/golang/go/issues/60137
+	mode := ssa.SanityCheckFunctions | ssa.InstantiateGenerics
+	prog, ssaPkgs := ssautil.AllPackages(pkgs, mode)
+	prog.Build()
+
+	// Filter out nil packages
+	validSSA := make([]*ssa.Package, 0, len(ssaPkgs))
+	for _, p := range ssaPkgs {
+		if p != nil {
+			validSSA = append(validSSA, p)
+		}
+	}
+
+	if verbose {
+		log.Printf("Built SSA for %d packages", len(validSSA))
+	}
+
+	return prog, validSSA
 }
 
 // filterLoadedPackages applica i filtri di directory e package.

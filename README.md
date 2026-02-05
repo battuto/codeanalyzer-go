@@ -36,6 +36,24 @@ cd codeanalyzer-go
 go build -o bin/codeanalyzer-go ./cmd/codeanalyzer-go
 ```
 
+### Cross-Platform 64-bit Builds
+
+Build for all platforms at once:
+
+```bash
+# Linux/macOS
+make build-all
+
+# Windows (PowerShell)
+.\scripts\build.ps1
+```
+
+Generates binaries in `bin/`:
+- `codeanalyzer-go-windows-amd64.exe`
+- `codeanalyzer-go-linux-amd64`
+- `codeanalyzer-go-darwin-amd64` (Intel Mac)
+- `codeanalyzer-go-darwin-arm64` (Apple Silicon)
+
 ### Standalone Usage
 
 You can also use this analyzer independently without CLDK:
@@ -75,6 +93,7 @@ codeanalyzer-go [flags]
 | `--analysis-level` | `-a` | Analysis level: `symbol_table`, `call_graph`, `full` | `full` |
 | `--cg` | | Call graph algorithm: `cha`, `rta` | `rta` |
 | `--format` | `-f` | Output format: `json` | `json` |
+| `--compact` | `-c` | **LLM-optimized output** (~70-85% smaller) | `false` |
 
 ### Filtering Flags
 
@@ -140,6 +159,24 @@ The output follows CLDK conventions with this structure:
 - **Maps, not arrays**: `packages`, `type_declarations`, `callable_declarations` are maps keyed by qualified name
 - **Qualified names**: Format is `pkg.Func` or `pkg.(*Type).Method`
 - **Positions**: Include `file`, `start_line`, `start_column`
+
+## 🤖 LLM Compact Output
+
+Use `--compact` for LLM-optimized output with ~70-85% size reduction:
+
+```bash
+# Compact symbol table
+codeanalyzer-go -i ./myproject -a symbol_table --compact > analysis.json
+
+# Compact full analysis  
+codeanalyzer-go -i ./myproject -a full --compact -o ./output
+```
+
+**Compact schema features:**
+- Abbreviated JSON keys (`metadata` → `m`, `packages` → `p`)
+- Documentation only for exported functions (truncated to 200 chars)
+- No position information
+- Simplified call graph edges: `[[source, target], ...]`
 
 ## 🔬 Call Graph Algorithms
 
