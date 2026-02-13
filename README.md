@@ -5,15 +5,20 @@
 
 **Static analyzer for Go projects**, compatible with [CodeLLM DevKit (CLDK)](https://github.com/codellm-devkit). Produces Symbol Table and Call Graph in stable JSON format.
 
-## ✨ Features
+## Features
 
 - **Symbol Table Extraction**: packages, imports, types (struct/interface/alias), functions, methods, variables, constants
+- **Interface Method Signatures**: extracts methods declared in interfaces with parameters, results and documentation
+- **Package Documentation**: extracts package-level doc comments
+- **Call Examples**: identifies callers of each function (requires `--include-body`)
+- **Clean Documentation**: newlines removed from all docstrings for cleaner JSON output
 - **Call Graph Construction**: using `golang.org/x/tools/go/ssa` with CHA or RTA algorithms
 - **CLDK Compatible**: output follows CLDK schema conventions for seamless integration
+- **Compact Output**: LLM-optimized format with ~70-85% size reduction
 - **Flexible Filtering**: exclude directories, filter by package path, include/exclude tests
 - **Position Tracking**: detailed or minimal source position information
 
-## 📦 Installation
+## Installation
 
 ### Prerequisites
 
@@ -62,7 +67,7 @@ You can also use this analyzer independently without CLDK:
 go install github.com/battuto/codeanalyzer-go/cmd/codeanalyzer-go@latest
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # Analyze a project (full analysis to stdout)
@@ -78,7 +83,7 @@ codeanalyzer-go --input ./myproject --analysis-level call_graph --cg rta
 codeanalyzer-go --input ./myproject --output ./output
 ```
 
-## 📖 CLI Reference
+## CLI Reference
 
 ```
 codeanalyzer-go [flags]
@@ -113,7 +118,7 @@ codeanalyzer-go [flags]
 | `--quiet`, `-q` | Suppress non-error output | `false` |
 | `--version` | Show version and exit | |
 
-## 📊 Output Schema
+## Output Schema
 
 The output follows CLDK conventions with this structure:
 
@@ -134,18 +139,39 @@ The output follows CLDK conventions with this structure:
       "example.com/myapp": {
         "path": "example.com/myapp",
         "name": "myapp",
+        "documentation": "Package myapp provides the main entry point.",
         "files": ["main.go", "util.go"],
         "imports": [{"path": "fmt"}],
-        "type_declarations": {"example.com/myapp.Config": {...}},
-        "callable_declarations": {"example.com/myapp.main": {...}},
-        "variables": {...},
-        "constants": {...}
+        "type_declarations": {
+          "example.com/myapp.Service": {
+            "kind": "interface",
+            "interface_methods": [
+              {
+                "name": "Start",
+                "signature": "Start() error",
+                "parameters": [],
+                "results": [{"type": "error"}],
+                "documentation": "Start initializes the service."
+              }
+            ]
+          }
+        },
+        "callable_declarations": {
+          "example.com/myapp.main": {
+            "name": "main",
+            "signature": "func main()",
+            "kind": "function",
+            "call_examples": ["called by init() [call]"]
+          }
+        },
+        "variables": {},
+        "constants": {}
       }
     }
   },
   "call_graph": {
     "algorithm": "rta",
-    "nodes": [{"id": "example.com/myapp.main", "kind": "function", ...}],
+    "nodes": [{"id": "example.com/myapp.main", "kind": "function"}],
     "edges": [{"source": "example.com/myapp.main", "target": "fmt.Println", "kind": "call"}]
   },
   "pdg": null,
@@ -159,8 +185,11 @@ The output follows CLDK conventions with this structure:
 - **Maps, not arrays**: `packages`, `type_declarations`, `callable_declarations` are maps keyed by qualified name
 - **Qualified names**: Format is `pkg.Func` or `pkg.(*Type).Method`
 - **Positions**: Include `file`, `start_line`, `start_column`
+- **Clean documentation**: all newlines removed from docstrings for cleaner output
+- **Interface methods**: `interface_methods` array on interface types with name, signature, parameters, results, documentation
+- **Call examples**: `call_examples` array on callables (requires `--include-body`)
 
-## 🤖 LLM Compact Output
+## LLM Compact Output
 
 Use `--compact` for LLM-optimized output with ~70-85% size reduction:
 
@@ -168,17 +197,20 @@ Use `--compact` for LLM-optimized output with ~70-85% size reduction:
 # Compact symbol table
 codeanalyzer-go -i ./myproject -a symbol_table --compact > analysis.json
 
-# Compact full analysis  
-codeanalyzer-go -i ./myproject -a full --compact -o ./output
+# Compact full analysis with body
+codeanalyzer-go -i ./myproject -a full --compact --include-body -o ./output
 ```
 
 **Compact schema features:**
-- Abbreviated JSON keys (`metadata` → `m`, `packages` → `p`)
+- Abbreviated JSON keys (`metadata` -> `m`, `packages` -> `p`)
+- Package documentation: `d` field on packages
+- Interface methods: `im` field on types (signature strings)
+- Call examples: `ex` field on functions
 - Documentation only for exported functions (truncated to 200 chars)
 - No position information
 - Simplified call graph edges: `[[source, target], ...]`
 
-## 🔬 Call Graph Algorithms
+## Call Graph Algorithms
 
 | Algorithm | Description | Best For |
 |-----------|-------------|----------|
@@ -193,7 +225,7 @@ codeanalyzer-go --input ./myapp --analysis-level call_graph --cg cha
 codeanalyzer-go --input ./myapp --analysis-level call_graph --cg rta
 ```
 
-## 🐍 CLDK Python Integration
+## CLDK Python Integration
 
 ```python
 from cldk.analysis import GoAnalyzer
@@ -212,20 +244,22 @@ for edge in result.call_graph.edges:
     print(f"{edge.source} -> {edge.target}")
 ```
 
-## 🧪 Testing
+## Testing
 
 ```bash
-# Build the analyzer
-go build -o bin/codeanalyzer-go ./cmd/codeanalyzer-go
+# Build all platform binaries
+.\scripts\build.ps1
 
 # Run Go unit tests
 go test ./...
 
-# Run Python integration tests
+# Run Python integration tests (35 tests)
 python tests/cldk_integration_test.py
 ```
 
-## 🔄 Exit Codes
+The integration tests cover: schema validation, new features (interface methods, package doc, call examples), compact format, real-world target (FRP project), legacy compatibility, positions, and error handling.
+
+## Exit Codes
 
 | Code | Meaning |
 |------|---------|
@@ -233,7 +267,7 @@ python tests/cldk_integration_test.py
 | `1` | Analysis errors (partial results may be available) |
 | `2` | Configuration or validation errors |
 
-## ⚠️ Deprecated Flags (Legacy)
+## Deprecated Flags (Legacy)
 
 The following flags are deprecated but still supported for backward compatibility:
 
@@ -244,7 +278,7 @@ The following flags are deprecated but still supported for backward compatibilit
 | `--out` | `--output` |
 | `--include-test` | `--include-tests` |
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Empty Call Graph with RTA
 
@@ -272,7 +306,7 @@ Enable verbose mode to see analysis progress:
 codeanalyzer-go --input ./myproject --verbose
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 codeanalyzer-go/
@@ -287,7 +321,7 @@ codeanalyzer-go/
 └── sampleapp/              # Sample Go project for testing
 ```
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 

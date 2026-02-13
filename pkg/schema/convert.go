@@ -61,6 +61,11 @@ func convertPackage(pkg *CLDKPackage) *CompactPkg {
 		Name: pkg.Name,
 	}
 
+	// Package documentation
+	if pkg.Documentation != "" {
+		cp.Doc = truncateDoc(pkg.Documentation)
+	}
+
 	// Files - estrai solo il basename
 	if len(pkg.Files) > 0 {
 		cp.Files = make([]string, len(pkg.Files))
@@ -111,6 +116,14 @@ func convertPackage(pkg *CLDKPackage) *CompactPkg {
 				ct.Doc = truncateDoc(td.Documentation)
 			}
 
+			// Interface methods
+			if len(td.InterfaceMethods) > 0 {
+				ct.IM = make([]string, 0, len(td.InterfaceMethods))
+				for _, im := range td.InterfaceMethods {
+					ct.IM = append(ct.IM, im.Signature)
+				}
+			}
+
 			cp.Types[td.Name] = ct
 		}
 	}
@@ -132,6 +145,11 @@ func convertPackage(pkg *CLDKPackage) *CompactPkg {
 			// Documentation solo per funzioni esportate
 			if cd.Exported && cd.Documentation != "" {
 				cf.Doc = truncateDoc(cd.Documentation)
+			}
+
+			// Call examples
+			if len(cd.CallExamples) > 0 {
+				cf.Ex = cd.CallExamples
 			}
 
 			cp.Funcs[cd.Name] = cf

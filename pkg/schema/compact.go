@@ -39,6 +39,7 @@ type CompactMeta struct {
 // CompactPkg rappresenta un package Go in formato compatto.
 type CompactPkg struct {
 	Name   string                  `json:"n"`            // package name
+	Doc    string                  `json:"d,omitempty"`  // package documentation
 	Files  []string                `json:"f,omitempty"`  // relative file paths
 	Imps   []string                `json:"i,omitempty"`  // import paths (leggibili)
 	Types  map[string]*CompactType `json:"t,omitempty"`  // type declarations
@@ -53,11 +54,12 @@ type CompactPkg struct {
 
 // CompactType rappresenta una dichiarazione di tipo in formato compatto.
 type CompactType struct {
-	Kind    string            `json:"k"`           // struct|interface|alias|named
-	Fields  map[string]string `json:"f,omitempty"` // fieldName → type
-	Methods []string          `json:"m,omitempty"` // method signatures
-	Embeds  []string          `json:"e,omitempty"` // embedded types
-	Doc     string            `json:"d,omitempty"` // documentation (solo export)
+	Kind    string            `json:"k"`            // struct|interface|alias|named
+	Fields  map[string]string `json:"f,omitempty"`  // fieldName → type
+	Methods []string          `json:"m,omitempty"`  // method signatures
+	IM      []string          `json:"im,omitempty"` // interface method signatures
+	Embeds  []string          `json:"e,omitempty"`  // embedded types
+	Doc     string            `json:"d,omitempty"`  // documentation (solo export)
 }
 
 // ============================================================================
@@ -66,10 +68,11 @@ type CompactType struct {
 
 // CompactFunc rappresenta una funzione o metodo in formato compatto.
 type CompactFunc struct {
-	Sig  string `json:"s"`           // signature completa
-	Kind string `json:"k,omitempty"` // "m" per method, omesso per function
-	Recv string `json:"r,omitempty"` // receiver type (solo per method)
-	Doc  string `json:"d,omitempty"` // documentation (solo export)
+	Sig  string   `json:"s"`            // signature completa
+	Kind string   `json:"k,omitempty"`  // "m" per method, omesso per function
+	Recv string   `json:"r,omitempty"`  // receiver type (solo per method)
+	Doc  string   `json:"d,omitempty"`  // documentation (solo export)
+	Ex   []string `json:"ex,omitempty"` // call examples
 }
 
 // ============================================================================

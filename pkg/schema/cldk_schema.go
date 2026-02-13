@@ -48,6 +48,7 @@ type CLDKSymbolTable struct {
 type CLDKPackage struct {
 	Path                 string                   `json:"path"`
 	Name                 string                   `json:"name"`
+	Documentation        string                   `json:"documentation,omitempty"`
 	Files                []string                 `json:"files"`
 	Imports              []CLDKImport             `json:"imports"`
 	TypeDeclarations     map[string]*CLDKType     `json:"type_declarations"`
@@ -69,17 +70,27 @@ type CLDKImport struct {
 
 // CLDKType rappresenta una dichiarazione di tipo (struct, interface, alias, etc.).
 type CLDKType struct {
-	QualifiedName   string                 `json:"qualified_name"`
-	Name            string                 `json:"name"`
-	Kind            string                 `json:"kind"` // struct|interface|alias|named
-	Position        *CLDKPosition          `json:"position"`
-	Documentation   string                 `json:"documentation,omitempty"`
-	Fields          []CLDKField            `json:"fields,omitempty"`
-	Methods         map[string]*CLDKMethod `json:"methods,omitempty"`
-	EmbeddedTypes   []string               `json:"embedded_types,omitempty"`
-	Implements      []string               `json:"implements,omitempty"`
-	UnderlyingType  string                 `json:"underlying_type,omitempty"`
-	TypeParameters  []CLDKTypeParam        `json:"type_parameters,omitempty"`
+	QualifiedName    string                 `json:"qualified_name"`
+	Name             string                 `json:"name"`
+	Kind             string                 `json:"kind"` // struct|interface|alias|named
+	Position         *CLDKPosition          `json:"position"`
+	Documentation    string                 `json:"documentation,omitempty"`
+	Fields           []CLDKField            `json:"fields,omitempty"`
+	Methods          map[string]*CLDKMethod `json:"methods,omitempty"`
+	InterfaceMethods []CLDKInterfaceMethod   `json:"interface_methods,omitempty"`
+	EmbeddedTypes    []string               `json:"embedded_types,omitempty"`
+	Implements       []string               `json:"implements,omitempty"`
+	UnderlyingType   string                 `json:"underlying_type,omitempty"`
+	TypeParameters   []CLDKTypeParam        `json:"type_parameters,omitempty"`
+}
+
+// CLDKInterfaceMethod rappresenta un metodo dichiarato in un'interfaccia.
+type CLDKInterfaceMethod struct {
+	Name          string          `json:"name"`
+	Signature     string          `json:"signature"`
+	Parameters    []CLDKParameter `json:"parameters"`
+	Results       []CLDKParameter `json:"results"`
+	Documentation string          `json:"documentation,omitempty"`
 }
 
 // CLDKField rappresenta un campo di una struct.
@@ -133,6 +144,7 @@ type CLDKCallable struct {
 	Exported       bool              `json:"exported"`
 	TypeParameters []CLDKTypeParam   `json:"type_parameters,omitempty"`
 	Body           *CLDKFunctionBody `json:"body,omitempty"`
+	CallExamples   []string          `json:"call_examples,omitempty"`
 }
 
 // CLDKParameter rappresenta un parametro o valore di ritorno.

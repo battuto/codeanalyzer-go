@@ -18,6 +18,19 @@ import (
 	"github.com/codellm-devkit/codeanalyzer-go/pkg/schema"
 )
 
+// cleanDoc rimuove newline e spazi extra dalla documentazione per un JSON più leggibile.
+func cleanDoc(s string) string {
+	s = strings.TrimSpace(s)
+	s = strings.ReplaceAll(s, "\r\n", " ")
+	s = strings.ReplaceAll(s, "\n", " ")
+	s = strings.ReplaceAll(s, "\r", "")
+	// Collassa spazi multipli
+	for strings.Contains(s, "  ") {
+		s = strings.ReplaceAll(s, "  ", " ")
+	}
+	return s
+}
+
 // ExtractConfig configura l'estrazione dei simboli.
 type ExtractConfig struct {
 	IncludeBody      bool   // include informazioni sul corpo delle funzioni
@@ -73,6 +86,11 @@ func extractPackage(pkg *packages.Package, fset *token.FileSet, root string, cfg
 	for _, file := range pkg.Syntax {
 		if file == nil {
 			continue
+		}
+
+		// Estrai package documentation dal primo file che ha Doc
+		if cldkPkg.Documentation == "" && file.Doc != nil {
+			cldkPkg.Documentation = cleanDoc(file.Doc.Text())
 		}
 
 		// Estrai imports
@@ -161,6 +179,11 @@ func extractPackage(pkg *packages.Package, fset *token.FileSet, root string, cfg
 		return cldkPkg.Imports[i].Path < cldkPkg.Imports[j].Path
 	})
 
+	// Popola call examples se il body è incluso
+	if cfg.IncludeBody && cfg.IncludeCallSites {
+		populateCallExamples(cldkPkg)
+	}
+
 	return cldkPkg
 }
 
@@ -205,7 +228,7 @@ func extractCallable(pkgPath string, fn *ast.FuncDecl, fset *token.FileSet, root
 
 	// Documentazione
 	if fn.Doc != nil {
-		callable.Documentation = fn.Doc.Text()
+		callable.Documentation = cleanDoc(fn.Doc.Text())
 	}
 
 	// Type parameters (generics)
@@ -249,7 +272,7 @@ func extractMethod(pkgPath string, fn *ast.FuncDecl, fset *token.FileSet, root s
 	}
 
 	if fn.Doc != nil {
-		method.Documentation = fn.Doc.Text()
+		method.Documentation = cleanDoc(fn.Doc.Text())
 	}
 
 	if cfg.IncludeBody && fn.Body != nil {
@@ -276,9 +299,9 @@ func extractType(pkgPath string, ts *ast.TypeSpec, gen *ast.GenDecl, fset *token
 
 	// Documentazione
 	if gen.Doc != nil {
-		t.Documentation = gen.Doc.Text()
+		t.Documentation = cleanDoc(gen.Doc.Text())
 	} else if ts.Doc != nil {
-		t.Documentation = ts.Doc.Text()
+		t.Documentation = cleanDoc(ts.Doc.Text())
 	}
 
 	// Type parameters (generics)
@@ -300,6 +323,7 @@ func extractType(pkgPath string, ts *ast.TypeSpec, gen *ast.GenDecl, fset *token
 	// Interface methods
 	if it, ok := ts.Type.(*ast.InterfaceType); ok && it.Methods != nil {
 		t.EmbeddedTypes = extractInterfaceEmbedded(it.Methods)
+		t.InterfaceMethods = extractInterfaceMethods(it.Methods)
 	}
 
 	return t
@@ -316,9 +340,9 @@ func extractVariables(pkgPath string, vs *ast.ValueSpec, gen *ast.GenDecl, fset 
 
 	doc := ""
 	if gen.Doc != nil {
-		doc = gen.Doc.Text()
+		doc = cleanDoc(gen.Doc.Text())
 	} else if vs.Doc != nil {
-		doc = vs.Doc.Text()
+		doc = cleanDoc(vs.Doc.Text())
 	}
 
 	for _, ident := range vs.Names {
@@ -504,6 +528,130 @@ func extractInterfaceEmbedded(fl *ast.FieldList) []string {
 		}
 	}
 	return embedded
+}
+
+// extractInterfaceMethods estrae i metodi dichiarati in un'interfaccia.
+func extractInterfaceMethods(fl *ast.FieldList) []schema.CLDKInterfaceMethod {
+	if fl == nil {
+		return nil
+	}
+
+	var methods []schema.CLDKInterfaceMethod
+	for _, f := range fl.List {
+		if len(f.Names) > 0 {
+			if ft, ok := f.Type.(*ast.FuncType); ok {
+				name := f.Names[0].Name
+				im := schema.CLDKInterfaceMethod{
+					Name:       name,
+					Signature:  buildInterfaceMethodSig(name, ft),
+					Parameters: extractParameters(ft.Params),
+					Results:    extractParameters(ft.Results),
+				}
+				if f.Doc != nil {
+					im.Documentation = cleanDoc(f.Doc.Text())
+				} else if f.Comment != nil {
+					im.Documentation = cleanDoc(f.Comment.Text())
+				}
+				methods = append(methods, im)
+			}
+		}
+	}
+	return methods
+}
+
+// buildInterfaceMethodSig costruisce la signature di un metodo di interfaccia.
+func buildInterfaceMethodSig(name string, ft *ast.FuncType) string {
+	params := []string{}
+	if ft.Params != nil {
+		for _, f := range ft.Params.List {
+			t := exprString(f.Type)
+			if len(f.Names) == 0 {
+				params = append(params, t)
+			} else {
+				for range f.Names {
+					params = append(params, t)
+				}
+			}
+		}
+	}
+
+	res := []string{}
+	if ft.Results != nil {
+		for _, f := range ft.Results.List {
+			t := exprString(f.Type)
+			if len(f.Names) == 0 {
+				res = append(res, t)
+			} else {
+				for range f.Names {
+					res = append(res, t)
+				}
+			}
+		}
+	}
+
+	sig := name + "(" + strings.Join(params, ", ") + ")"
+	if len(res) == 1 {
+		sig += " " + res[0]
+	} else if len(res) > 1 {
+		sig += " (" + strings.Join(res, ", ") + ")"
+	}
+	return sig
+}
+
+// populateCallExamples popola CallExamples per ogni callable analizzando i call sites.
+func populateCallExamples(pkg *schema.CLDKPackage) {
+	// Costruisci indice: nome funzione -> qualified name
+	nameIndex := make(map[string][]string)
+	for qn, cd := range pkg.CallableDeclarations {
+		nameIndex[cd.Name] = append(nameIndex[cd.Name], qn)
+	}
+
+	// Per ogni callable, cerca chi lo chiama
+	examples := make(map[string][]string) // qn -> examples
+	for _, caller := range pkg.CallableDeclarations {
+		if caller.Body == nil {
+			continue
+		}
+		for _, cs := range caller.Body.CallSites {
+			// Cerca il target tra le callable del package
+			targetName := extractCallTargetName(cs.Target)
+			for _, qn := range nameIndex[targetName] {
+				existing := examples[qn]
+				if len(existing) >= 3 {
+					continue
+				}
+				example := fmt.Sprintf("called by %s() [%s]", caller.Name, cs.Kind)
+				// Evita duplicati
+				duplicate := false
+				for _, e := range existing {
+					if e == example {
+						duplicate = true
+						break
+					}
+				}
+				if !duplicate {
+					examples[qn] = append(existing, example)
+				}
+			}
+		}
+	}
+
+	// Assegna gli esempi
+	for qn, exs := range examples {
+		if cd, ok := pkg.CallableDeclarations[qn]; ok {
+			cd.CallExamples = exs
+		}
+	}
+}
+
+// extractCallTargetName estrae il nome della funzione target da una call expression.
+// Gestisce pattern come "pkg.Func", "obj.Method", "Func".
+func extractCallTargetName(target string) string {
+	// Rimuovi prefissi come "pkg." o "obj."
+	if idx := strings.LastIndex(target, "."); idx >= 0 {
+		return target[idx+1:]
+	}
+	return target
 }
 
 // extractFunctionBody estrae informazioni sul corpo della funzione.
