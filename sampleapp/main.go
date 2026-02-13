@@ -1,3 +1,5 @@
+// Package main è un'applicazione di esempio per testare l'analyzer Go.
+// Dimostra struct, interfacce, metodi e chiamate a funzione.
 package main
 
 import (
@@ -7,6 +9,7 @@ import (
 
 // Greeter is a tiny example interface.
 type Greeter interface {
+	// Greet returns a greeting for the given name.
 	Greet(name string) string
 }
 

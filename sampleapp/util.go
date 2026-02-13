@@ -16,3 +16,11 @@ type Person struct {
 
 // Birthday increases the age by 1.
 func (p *Person) Birthday() { p.Age++ }
+
+// Calculator definisce operazioni aritmetiche di base.
+type Calculator interface {
+	// Add somma due numeri.
+	Add(a, b int) int
+	// Multiply moltiplica due numeri.
+	Multiply(a, b int) int
+}
