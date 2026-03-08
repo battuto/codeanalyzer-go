@@ -12,6 +12,7 @@ import (
 	"github.com/codellm-devkit/codeanalyzer-go/internal/callgraph"
 	"github.com/codellm-devkit/codeanalyzer-go/internal/loader"
 	"github.com/codellm-devkit/codeanalyzer-go/internal/output"
+	"github.com/codellm-devkit/codeanalyzer-go/internal/pdg"
 	"github.com/codellm-devkit/codeanalyzer-go/internal/symbols"
 	"github.com/codellm-devkit/codeanalyzer-go/pkg/schema"
 )
@@ -212,7 +213,8 @@ func runAnalysis(cfg config) error {
 	logVerbose(cfg, "  Go version: %s", runtime.Version())
 
 	// Determina se serve SSA
-	needSSA := cfg.analysisLevel == levelCallGraph || cfg.analysisLevel == levelFull
+	needSSA := cfg.analysisLevel == levelCallGraph || cfg.analysisLevel == levelPDG ||
+		cfg.analysisLevel == levelSDG || cfg.analysisLevel == levelFull
 
 	// Carica pacchetti
 	loaderOpts := loader.Options{
@@ -280,12 +282,37 @@ func runAnalysis(cfg config) error {
 		}
 	}
 
-	// PDG/SDG placeholder (non implementato)
-	if cfg.analysisLevel == levelPDG || cfg.analysisLevel == levelSDG {
+	// Costruisci PDG se richiesto
+	if cfg.analysisLevel == levelPDG || cfg.analysisLevel == levelFull {
+		logVerbose(cfg, "Building PDG...")
+		pdgCfg := pdg.Config{
+			EmitPositions: cfg.emitPositions,
+			OnlyPkg:       splitCSV(cfg.onlyPkg),
+		}
+		pdgResult, err := pdg.Build(result, pdgCfg)
+		if err != nil {
+			analysis.Issues = append(analysis.Issues, schema.Issue{
+				Severity: "warning",
+				Code:     "PDG_ERROR",
+				Message:  fmt.Sprintf("Failed to build PDG: %v", err),
+			})
+			logWarning("PDG build failed: %v", err)
+		} else {
+			analysis.PDG = pdgResult
+			fnCount := 0
+			for _, pkg := range pdgResult.Packages {
+				fnCount += len(pkg.Functions)
+			}
+			logVerbose(cfg, "PDG: %d functions analyzed", fnCount)
+		}
+	}
+
+	// SDG placeholder (non implementato)
+	if cfg.analysisLevel == levelSDG {
 		analysis.Issues = append(analysis.Issues, schema.Issue{
 			Severity: "info",
 			Code:     "NOT_IMPLEMENTED",
-			Message:  fmt.Sprintf("%s analysis is not yet implemented", strings.ToUpper(cfg.analysisLevel)),
+			Message:  "SDG analysis is not yet implemented",
 		})
 	}
 

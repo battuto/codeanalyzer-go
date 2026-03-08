@@ -10,7 +10,7 @@ type CLDKAnalysis struct {
 	Metadata    Metadata         `json:"metadata"`
 	SymbolTable *CLDKSymbolTable `json:"symbol_table,omitempty"`
 	CallGraph   *CLDKCallGraph   `json:"call_graph,omitempty"`
-	PDG         interface{}      `json:"pdg"`    // placeholder null per future estensioni
+	PDG         *CLDKPDG         `json:"pdg"`    // Program Dependence Graph (intra-procedural)
 	SDG         interface{}      `json:"sdg"`    // placeholder null per future estensioni
 	Issues      []Issue          `json:"issues"`
 }

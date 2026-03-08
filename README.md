@@ -3,7 +3,7 @@
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**Static analyzer for Go projects**, compatible with [CodeLLM DevKit (CLDK)](https://github.com/codellm-devkit). Produces Symbol Table and Call Graph in stable JSON format.
+**Static analyzer for Go projects**, compatible with [CodeLLM DevKit (CLDK)](https://github.com/codellm-devkit). Produces Symbol Table, Call Graph, and PDG (Program Dependence Graph) in stable JSON format.
 
 ## Features
 
@@ -13,6 +13,7 @@
 - **Call Examples**: identifies callers of each function (requires `--include-body`)
 - **Clean Documentation**: newlines removed from all docstrings for cleaner JSON output
 - **Call Graph Construction**: using `golang.org/x/tools/go/ssa` with CHA or RTA algorithms
+- **PDG (Program Dependence Graph)**: intra-procedural data and control dependency analysis per function, grouped by package
 - **CLDK Compatible**: output follows CLDK schema conventions for seamless integration
 - **Compact Output**: LLM-optimized format with ~70-85% size reduction
 - **Flexible Filtering**: exclude directories, filter by package path, include/exclude tests
@@ -79,6 +80,9 @@ codeanalyzer-go --input ./myproject --analysis-level symbol_table
 # Call graph with RTA algorithm
 codeanalyzer-go --input ./myproject --analysis-level call_graph --cg rta
 
+# PDG (Program Dependence Graph)
+codeanalyzer-go --input ./myproject --analysis-level pdg
+
 # Save output to directory
 codeanalyzer-go --input ./myproject --output ./output
 ```
@@ -95,7 +99,7 @@ codeanalyzer-go [flags]
 |------|-------|-------------|---------|
 | `--input` | `-i` | Path to Go project root | `.` |
 | `--output` | `-o` | Output directory (omit for stdout) | stdout |
-| `--analysis-level` | `-a` | Analysis level: `symbol_table`, `call_graph`, `full` | `full` |
+| `--analysis-level` | `-a` | Analysis level: `symbol_table`, `call_graph`, `pdg`, `full` | `full` |
 | `--cg` | | Call graph algorithm: `cha`, `rta` | `rta` |
 | `--format` | `-f` | Output format: `json` | `json` |
 | `--compact` | `-c` | **LLM-optimized output** (~70-85% smaller) | `false` |
@@ -174,7 +178,26 @@ The output follows CLDK conventions with this structure:
     "nodes": [{"id": "example.com/myapp.main", "kind": "function"}],
     "edges": [{"source": "example.com/myapp.main", "target": "fmt.Println", "kind": "call"}]
   },
-  "pdg": null,
+  "pdg": {
+    "packages": {
+      "example.com/myapp": {
+        "functions": {
+          "example.com/myapp.main": {
+            "qualified_name": "example.com/myapp.main",
+            "package": "example.com/myapp",
+            "nodes": [
+              {"id": 0, "kind": "entry", "instr": "entry: main"},
+              {"id": 1, "kind": "call", "instr": "fmt.Println(...)"}
+            ],
+            "data_edges": [
+              {"from": 0, "to": 1, "var": "t0"}
+            ],
+            "control_edges": []
+          }
+        }
+      }
+    }
+  },
   "sdg": null,
   "issues": []
 }
@@ -188,6 +211,7 @@ The output follows CLDK conventions with this structure:
 - **Clean documentation**: all newlines removed from docstrings for cleaner output
 - **Interface methods**: `interface_methods` array on interface types with name, signature, parameters, results, documentation
 - **Call examples**: `call_examples` array on callables (requires `--include-body`)
+- **PDG per-package**: `pdg.packages` mirrors `symbol_table.packages` — each package contains a `functions` map with nodes, data edges (use-def), and control edges (branch conditions)
 
 ## LLM Compact Output
 
@@ -209,6 +233,7 @@ codeanalyzer-go -i ./myproject -a full --compact --include-body -o ./output
 - Documentation only for exported functions (truncated to 200 chars)
 - No position information
 - Simplified call graph edges: `[[source, target], ...]`
+- PDG per-package: `pdg.p.{pkg}.f.{fn}` with nodes `n`, data edges `d`, control edges `c`
 
 ## Call Graph Algorithms
 
@@ -231,7 +256,7 @@ codeanalyzer-go --input ./myapp --analysis-level call_graph --cg rta
 from cldk.analysis import GoAnalyzer
 
 analyzer = GoAnalyzer()
-result = analyzer.analyze("/path/to/project", level="call_graph")
+result = analyzer.analyze("/path/to/project", level="full")
 
 # Access symbol table
 for pkg_path, pkg in result.symbol_table.packages.items():
@@ -242,6 +267,14 @@ for pkg_path, pkg in result.symbol_table.packages.items():
 # Access call graph
 for edge in result.call_graph.edges:
     print(f"{edge.source} -> {edge.target}")
+
+# Access PDG per-package (iterate alongside symbol table)
+for pkg_path, pkg_pdg in result.pdg.packages.items():
+    print(f"\nPDG for {pkg_path}:")
+    for fn_name, fn_pdg in pkg_pdg.functions.items():
+        print(f"  {fn_name}: {len(fn_pdg.nodes)} nodes, "
+              f"{len(fn_pdg.data_edges)} data deps, "
+              f"{len(fn_pdg.control_edges)} control deps")
 ```
 
 ## Testing
@@ -314,7 +347,8 @@ codeanalyzer-go/
 ├── internal/
 │   ├── loader/             # Package loading with SSA support
 │   ├── symbols/            # Symbol table extraction
-│   ├── callgraph/          # Call graph construction
+│   ├── callgraph/          # Call graph construction (CHA/RTA)
+│   ├── pdg/                # Program Dependence Graph (data + control deps)
 │   └── output/             # JSON output writer
 ├── pkg/schema/             # CLDK schema definitions
 ├── tests/                  # Integration tests

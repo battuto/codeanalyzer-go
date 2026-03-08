@@ -2,6 +2,7 @@
 package schema
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 )
@@ -15,7 +16,7 @@ func ToCompact(full *CLDKAnalysis) *CompactAnalysis {
 			Lvl:  full.Metadata.AnalysisLevel,
 			Dur:  full.Metadata.AnalysisDurationMs,
 		},
-		PDG: nil, // placeholder per future estensioni
+		PDG: nil,
 		SDG: nil, // placeholder per future estensioni
 		Iss: convertIssues(full.Issues),
 	}
@@ -31,6 +32,11 @@ func ToCompact(full *CLDKAnalysis) *CompactAnalysis {
 	// Converti call graph
 	if full.CallGraph != nil {
 		compact.CG = convertCallGraph(full.CallGraph)
+	}
+
+	// Converti PDG
+	if full.PDG != nil {
+		compact.PDG = convertPDG(full.PDG)
 	}
 
 	return compact
@@ -201,6 +207,67 @@ func convertCallGraph(cg *CLDKCallGraph) *CompactCallGraph {
 	}
 
 	return ccg
+}
+
+// convertPDG converte CLDKPDG in CompactPDG (per-package).
+func convertPDG(p *CLDKPDG) *CompactPDG {
+	if p == nil || len(p.Packages) == 0 {
+		return nil
+	}
+
+	cp := &CompactPDG{
+		Pkgs: make(map[string]*CompactPkgPDG, len(p.Packages)),
+	}
+
+	for pkgPath, pkgPDG := range p.Packages {
+		cpkg := &CompactPkgPDG{
+			Fns: make(map[string]*CompactFnPDG, len(pkgPDG.Functions)),
+		}
+
+		for qn, fn := range pkgPDG.Functions {
+			cfn := &CompactFnPDG{}
+
+			// Nodi: "id:kind:instr"
+			cfn.Nodes = make([]string, len(fn.Nodes))
+			for i, n := range fn.Nodes {
+				instr := n.Instr
+				if len(instr) > 80 {
+					instr = instr[:77] + "..."
+				}
+				cfn.Nodes[i] = fmt.Sprintf("%d:%s:%s", n.ID, n.Kind, instr)
+			}
+
+			// Data edges: [from, to, var]
+			if len(fn.DataEdges) > 0 {
+				cfn.Data = make([][3]string, len(fn.DataEdges))
+				for i, e := range fn.DataEdges {
+					cfn.Data[i] = [3]string{
+						fmt.Sprintf("%d", e.From),
+						fmt.Sprintf("%d", e.To),
+						e.VarName,
+					}
+				}
+			}
+
+			// Control edges: [from, to, condition]
+			if len(fn.ControlEdges) > 0 {
+				cfn.Ctrl = make([][3]string, len(fn.ControlEdges))
+				for i, e := range fn.ControlEdges {
+					cfn.Ctrl[i] = [3]string{
+						fmt.Sprintf("%d", e.From),
+						fmt.Sprintf("%d", e.To),
+						e.Condition,
+					}
+				}
+			}
+
+			cpkg.Fns[qn] = cfn
+		}
+
+		cp.Pkgs[pkgPath] = cpkg
+	}
+
+	return cp
 }
 
 // isExported verifica se un nome è esportato (inizia con maiuscola).

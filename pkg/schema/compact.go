@@ -12,7 +12,7 @@ type CompactAnalysis struct {
 	Meta *CompactMeta           `json:"m"`
 	Pkgs map[string]*CompactPkg `json:"p,omitempty"`
 	CG   *CompactCallGraph      `json:"cg,omitempty"`
-	PDG  interface{}            `json:"pdg"` // placeholder per future estensioni
+	PDG  *CompactPDG          `json:"pdg"` // Program Dependence Graph (compatto)
 	SDG  interface{}            `json:"sdg"` // placeholder per future estensioni
 	Iss  []CompactIssue         `json:"iss"` // issues/warnings
 }
@@ -83,4 +83,25 @@ type CompactFunc struct {
 type CompactCallGraph struct {
 	Algo  string      `json:"a"` // algorithm (cha|rta)
 	Edges [][2]string `json:"e"` // [[source, target], ...]
+}
+
+// ============================================================================
+// PDG (Program Dependence Graph) Compact
+// ============================================================================
+
+// CompactPDG rappresenta il PDG in formato compatto per LLM, raggruppato per package.
+type CompactPDG struct {
+	Pkgs map[string]*CompactPkgPDG `json:"p"` // package_path → package PDG
+}
+
+// CompactPkgPDG raggruppa i PDG delle funzioni di un singolo package in formato compatto.
+type CompactPkgPDG struct {
+	Fns map[string]*CompactFnPDG `json:"f"` // func_name → function PDG
+}
+
+// CompactFnPDG rappresenta il PDG di una singola funzione in formato compatto.
+type CompactFnPDG struct {
+	Nodes []string    `json:"n"`            // ["id:kind:instr", ...]
+	Data  [][3]string `json:"d,omitempty"`  // [[from_id, to_id, var], ...]
+	Ctrl  [][3]string `json:"c,omitempty"`  // [[from_id, to_id, cond], ...]
 }
