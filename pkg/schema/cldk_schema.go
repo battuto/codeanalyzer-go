@@ -11,7 +11,7 @@ type CLDKAnalysis struct {
 	SymbolTable *CLDKSymbolTable `json:"symbol_table,omitempty"`
 	CallGraph   *CLDKCallGraph   `json:"call_graph,omitempty"`
 	PDG         *CLDKPDG         `json:"pdg"`    // Program Dependence Graph (intra-procedural)
-	SDG         interface{}      `json:"sdg"`    // placeholder null per future estensioni
+	SDG         *CLDKSDG         `json:"sdg"`    // System Dependence Graph (inter-procedural)
 	Issues      []Issue          `json:"issues"`
 }
 

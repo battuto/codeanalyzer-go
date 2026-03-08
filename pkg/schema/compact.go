@@ -12,8 +12,8 @@ type CompactAnalysis struct {
 	Meta *CompactMeta           `json:"m"`
 	Pkgs map[string]*CompactPkg `json:"p,omitempty"`
 	CG   *CompactCallGraph      `json:"cg,omitempty"`
-	PDG  *CompactPDG          `json:"pdg"` // Program Dependence Graph (compatto)
-	SDG  interface{}            `json:"sdg"` // placeholder per future estensioni
+	PDG  *CompactPDG            `json:"pdg"` // Program Dependence Graph (compatto)
+	SDG  *CompactSDG            `json:"sdg"` // System Dependence Graph (compatto)
 	Iss  []CompactIssue         `json:"iss"` // issues/warnings
 }
 
@@ -104,4 +104,19 @@ type CompactFnPDG struct {
 	Nodes []string    `json:"n"`            // ["id:kind:instr", ...]
 	Data  [][3]string `json:"d,omitempty"`  // [[from_id, to_id, var], ...]
 	Ctrl  [][3]string `json:"c,omitempty"`  // [[from_id, to_id, cond], ...]
+}
+
+// ============================================================================
+// SDG (System Dependence Graph) Compact
+// ============================================================================
+
+// CompactSDG rappresenta l'SDG in formato compatto per LLM, raggruppato per caller-package.
+type CompactSDG struct {
+	Pkgs map[string]*CompactPkgSDG `json:"p"` // caller_package → package SDG
+}
+
+// CompactPkgSDG raggruppa gli edge SDG di un singolo caller-package.
+type CompactPkgSDG struct {
+	// [[kind, caller_func, callee_func, caller_node, callee_node, param_idx, var], ...]
+	Edges [][7]string `json:"e"`
 }

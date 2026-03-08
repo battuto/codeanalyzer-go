@@ -13,6 +13,7 @@ import (
 	"github.com/codellm-devkit/codeanalyzer-go/internal/loader"
 	"github.com/codellm-devkit/codeanalyzer-go/internal/output"
 	"github.com/codellm-devkit/codeanalyzer-go/internal/pdg"
+	"github.com/codellm-devkit/codeanalyzer-go/internal/sdg"
 	"github.com/codellm-devkit/codeanalyzer-go/internal/symbols"
 	"github.com/codellm-devkit/codeanalyzer-go/pkg/schema"
 )
@@ -259,8 +260,8 @@ func runAnalysis(cfg config) error {
 		logVerbose(cfg, "Extracted %d packages", len(analysis.SymbolTable.Packages))
 	}
 
-	// Costruisci call graph se richiesto
-	if cfg.analysisLevel == levelCallGraph || cfg.analysisLevel == levelFull {
+	// Costruisci call graph se richiesto (SDG lo richiede)
+	if cfg.analysisLevel == levelCallGraph || cfg.analysisLevel == levelSDG || cfg.analysisLevel == levelFull {
 		logVerbose(cfg, "Building call graph with %s...", cfg.cgAlgo)
 		cgCfg := callgraph.Config{
 			Algorithm:     cfg.cgAlgo,
@@ -282,8 +283,8 @@ func runAnalysis(cfg config) error {
 		}
 	}
 
-	// Costruisci PDG se richiesto
-	if cfg.analysisLevel == levelPDG || cfg.analysisLevel == levelFull {
+	// Costruisci PDG se richiesto (SDG lo richiede)
+	if cfg.analysisLevel == levelPDG || cfg.analysisLevel == levelSDG || cfg.analysisLevel == levelFull {
 		logVerbose(cfg, "Building PDG...")
 		pdgCfg := pdg.Config{
 			EmitPositions: cfg.emitPositions,
@@ -307,13 +308,26 @@ func runAnalysis(cfg config) error {
 		}
 	}
 
-	// SDG placeholder (non implementato)
-	if cfg.analysisLevel == levelSDG {
-		analysis.Issues = append(analysis.Issues, schema.Issue{
-			Severity: "info",
-			Code:     "NOT_IMPLEMENTED",
-			Message:  "SDG analysis is not yet implemented",
-		})
+	// Costruisci SDG se richiesto (richiede PDG + call graph)
+	if cfg.analysisLevel == levelSDG || cfg.analysisLevel == levelFull {
+		if analysis.PDG != nil && analysis.CallGraph != nil {
+			logVerbose(cfg, "Building SDG...")
+			sdgCfg := sdg.Config{}
+			sdgResult, err := sdg.Build(analysis.PDG, analysis.CallGraph, sdgCfg)
+			if err != nil {
+				analysis.Issues = append(analysis.Issues, schema.Issue{
+					Severity: "warning",
+					Code:     "SDG_ERROR",
+					Message:  fmt.Sprintf("Failed to build SDG: %v", err),
+				})
+				logWarning("SDG build failed: %v", err)
+			} else {
+				analysis.SDG = sdgResult
+				logVerbose(cfg, "SDG: %d packages with inter-procedural edges", len(sdgResult.Packages))
+			}
+		} else {
+			logWarning("SDG requires both PDG and call graph to be built")
+		}
 	}
 
 	// Calcola durata

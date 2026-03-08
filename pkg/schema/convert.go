@@ -17,7 +17,7 @@ func ToCompact(full *CLDKAnalysis) *CompactAnalysis {
 			Dur:  full.Metadata.AnalysisDurationMs,
 		},
 		PDG: nil,
-		SDG: nil, // placeholder per future estensioni
+		SDG: nil,
 		Iss: convertIssues(full.Issues),
 	}
 
@@ -37,6 +37,11 @@ func ToCompact(full *CLDKAnalysis) *CompactAnalysis {
 	// Converti PDG
 	if full.PDG != nil {
 		compact.PDG = convertPDG(full.PDG)
+	}
+
+	// Converti SDG
+	if full.SDG != nil {
+		compact.SDG = convertSDG(full.SDG)
 	}
 
 	return compact
@@ -268,6 +273,43 @@ func convertPDG(p *CLDKPDG) *CompactPDG {
 	}
 
 	return cp
+}
+
+// convertSDG converte CLDKSDG in CompactSDG (per-caller-package).
+func convertSDG(s *CLDKSDG) *CompactSDG {
+	if s == nil || len(s.Packages) == 0 {
+		return nil
+	}
+
+	cs := &CompactSDG{
+		Pkgs: make(map[string]*CompactPkgSDG, len(s.Packages)),
+	}
+
+	for pkgPath, pkgSDG := range s.Packages {
+		if len(pkgSDG.InterEdges) == 0 {
+			continue
+		}
+
+		cpkg := &CompactPkgSDG{
+			Edges: make([][7]string, len(pkgSDG.InterEdges)),
+		}
+
+		for i, e := range pkgSDG.InterEdges {
+			cpkg.Edges[i] = [7]string{
+				e.Kind,
+				e.CallerFunc,
+				e.CalleeFunc,
+				fmt.Sprintf("%d", e.CallerNode),
+				fmt.Sprintf("%d", e.CalleeNode),
+				fmt.Sprintf("%d", e.ParamIndex),
+				e.VarName,
+			}
+		}
+
+		cs.Pkgs[pkgPath] = cpkg
+	}
+
+	return cs
 }
 
 // isExported verifica se un nome è esportato (inizia con maiuscola).

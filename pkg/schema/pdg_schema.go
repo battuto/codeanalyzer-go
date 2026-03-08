@@ -33,6 +33,7 @@ type PDGNode struct {
 	Kind     string        `json:"kind"`               // "entry"|"assign"|"call"|"branch"|"return"|"phi"|"store"|"field"|"other"
 	Instr    string        `json:"instr"`              // rappresentazione stringa dell'istruzione SSA
 	Position *CLDKPosition `json:"position,omitempty"` // posizione nel sorgente
+	Target   string        `json:"target,omitempty"`   // per nodi call: qualified name del target
 }
 
 // PDGDataEdge rappresenta una data dependency: il nodo To usa un valore definito dal nodo From.

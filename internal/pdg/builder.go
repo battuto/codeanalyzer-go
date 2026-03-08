@@ -158,6 +158,11 @@ func buildFunctionPDG(fn *ssa.Function, pkgPath string, result *loader.LoadResul
 				}
 			}
 
+			// Per nodi call: estrai il target (qualified name della funzione chiamata)
+			if target := extractCallTarget(instr); target != "" {
+				node.Target = target
+			}
+
 			fnPDG.Nodes = append(fnPDG.Nodes, node)
 			instrIndex[instr] = nodeID
 
@@ -535,4 +540,33 @@ func normalizeReceiverType(t, pkg string) string {
 		return t[idx+1:]
 	}
 	return t
+}
+
+// extractCallTarget estrae il qualified name del target di una call instruction.
+// Restituisce "" per call non risolvibili (es. closure, interface dispatch).
+func extractCallTarget(instr ssa.Instruction) string {
+	var common *ssa.CallCommon
+
+	switch v := instr.(type) {
+	case *ssa.Call:
+		common = v.Common()
+	case *ssa.Go:
+		common = v.Common()
+	case *ssa.Defer:
+		common = v.Common()
+	default:
+		return ""
+	}
+
+	if common == nil {
+		return ""
+	}
+
+	// Static call: la funzione è nota a compile time
+	if fn := common.StaticCallee(); fn != nil {
+		return stableFuncID(fn)
+	}
+
+	// Dynamic call (interface dispatch, function value): non risolvibile staticamente
+	return ""
 }

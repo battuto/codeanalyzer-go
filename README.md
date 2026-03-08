@@ -198,7 +198,21 @@ The output follows CLDK conventions with this structure:
       }
     }
   },
-  "sdg": null,
+  "sdg": {
+    "packages": {
+      "example.com/myapp": {
+        "inter_edges": [
+          {
+            "kind": "call",
+            "caller_func": "example.com/myapp.main",
+            "callee_func": "fmt.Println",
+            "caller_node": 1,
+            "callee_node": 0
+          }
+        ]
+      }
+    }
+  },
   "issues": []
 }
 ```
@@ -212,7 +226,7 @@ The output follows CLDK conventions with this structure:
 - **Interface methods**: `interface_methods` array on interface types with name, signature, parameters, results, documentation
 - **Call examples**: `call_examples` array on callables (requires `--include-body`)
 - **PDG per-package**: `pdg.packages` mirrors `symbol_table.packages` — each package contains a `functions` map with nodes, data edges (use-def), and control edges (branch conditions)
-
+- **SDG per-caller-package**: `sdg.packages` groups inter-procedural edges (call, param-in, param-out) by the package where the caller resides
 ## LLM Compact Output
 
 Use `--compact` for LLM-optimized output with ~70-85% size reduction:
@@ -234,6 +248,7 @@ codeanalyzer-go -i ./myproject -a full --compact --include-body -o ./output
 - No position information
 - Simplified call graph edges: `[[source, target], ...]`
 - PDG per-package: `pdg.p.{pkg}.f.{fn}` with nodes `n`, data edges `d`, control edges `c`
+- SDG per-caller-package: `sdg.p.{pkg}.e` with edges as `[kind, caller, callee, caller_node, callee_node, param_idx, var]`
 
 ## Call Graph Algorithms
 
@@ -275,6 +290,12 @@ for pkg_path, pkg_pdg in result.pdg.packages.items():
         print(f"  {fn_name}: {len(fn_pdg.nodes)} nodes, "
               f"{len(fn_pdg.data_edges)} data deps, "
               f"{len(fn_pdg.control_edges)} control deps")
+
+# Access SDG per-caller-package (ideal for capability analysis)
+for pkg_path, pkg_sdg in result.sdg.packages.items():
+    print(f"\nSDG Edges originating from {pkg_path}: {len(pkg_sdg.inter_edges)}")
+    for edge in pkg_sdg.inter_edges:
+        print(f"  {edge.kind}: {edge.caller_func} -> {edge.callee_func}")
 ```
 
 ## Testing
@@ -348,7 +369,8 @@ codeanalyzer-go/
 │   ├── loader/             # Package loading with SSA support
 │   ├── symbols/            # Symbol table extraction
 │   ├── callgraph/          # Call graph construction (CHA/RTA)
-│   ├── pdg/                # Program Dependence Graph (data + control deps)
+│   ├── pdg/                # Program Dependence Graph (intra-procedural)
+│   ├── sdg/                # System Dependence Graph (inter-procedural)
 │   └── output/             # JSON output writer
 ├── pkg/schema/             # CLDK schema definitions
 ├── tests/                  # Integration tests
