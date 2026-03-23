@@ -10,6 +10,7 @@
 - **Symbol Table Extraction**: packages, imports, types (struct/interface/alias), functions, methods, variables, constants
 - **Interface Method Signatures**: extracts methods declared in interfaces with parameters, results and documentation
 - **Package Documentation**: extracts package-level doc comments
+- **Package-Level Security Metadata**: identifies `init()`, goroutines (`go` statements), environment variable reads, build constraints, reverse imports, and reachability from `main()`
 - **Call Examples**: identifies callers of each function (requires `--include-body`)
 - **Clean Documentation**: newlines removed from all docstrings for cleaner JSON output
 - **Call Graph Construction**: using `golang.org/x/tools/go/ssa` with CHA or RTA algorithms
@@ -146,6 +147,12 @@ The output follows CLDK conventions with this structure:
         "documentation": "Package myapp provides the main entry point.",
         "files": ["main.go", "util.go"],
         "imports": [{"path": "fmt"}],
+        "has_init": true,
+        "has_goroutines": true,
+        "reads_env": false,
+        "build_tags": ["linux"],
+        "used_by_packages": [],
+        "reachable_from_main": true,
         "type_declarations": {
           "example.com/myapp.Service": {
             "kind": "interface",
@@ -223,6 +230,7 @@ The output follows CLDK conventions with this structure:
 - **Qualified names**: Format is `pkg.Func` or `pkg.(*Type).Method`
 - **Positions**: Include `file`, `start_line`, `start_column`
 - **Clean documentation**: all newlines removed from docstrings for cleaner output
+- **Security Metadata**: Packages include fields for malware/security analysis (`has_init`, `has_goroutines`, `reads_env`, `build_tags`, `used_by_packages`, `reachable_from_main`)
 - **Interface methods**: `interface_methods` array on interface types with name, signature, parameters, results, documentation
 - **Call examples**: `call_examples` array on callables (requires `--include-body`)
 - **PDG per-package**: `pdg.packages` mirrors `symbol_table.packages` — each package contains a `functions` map with nodes, data edges (use-def), and control edges (branch conditions)
@@ -244,6 +252,7 @@ codeanalyzer-go -i ./myproject -a full --compact --include-body -o ./output
 - Package documentation: `d` field on packages
 - Interface methods: `im` field on types (signature strings)
 - Call examples: `ex` field on functions
+- Security Metadata on packages: `init`, `gor`, `env`, `bt`, `ub`, `main`
 - Documentation only for exported functions (truncated to 200 chars)
 - No position information
 - Simplified call graph edges: `[[source, target], ...]`

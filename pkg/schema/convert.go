@@ -197,6 +197,18 @@ func convertPackage(pkg *CLDKPackage) *CompactPkg {
 		}
 	}
 
+	// Package-level metadata for malware/security analysis
+	cp.Init = pkg.HasInit
+	cp.Gor = pkg.HasGoroutines
+	cp.Env = pkg.ReadsEnv
+	if len(pkg.BuildTags) > 0 {
+		cp.BT = pkg.BuildTags
+	}
+	if len(pkg.UsedByPackages) > 0 {
+		cp.UsedBy = pkg.UsedByPackages
+	}
+	cp.Main = pkg.ReachableFromMain
+
 	return cp
 }
 

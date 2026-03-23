@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
+	"go/build/constraint"
 	"go/printer"
 	"go/token"
 	"path/filepath"
@@ -182,6 +183,83 @@ func extractPackage(pkg *packages.Package, fset *token.FileSet, root string, cfg
 	// Popola call examples se il body è incluso
 	if cfg.IncludeBody && cfg.IncludeCallSites {
 		populateCallExamples(cldkPkg)
+	}
+
+	// ──────────────────────────────────────────────────────────────────
+	// Package-level metadata for malware/security analysis
+	// ──────────────────────────────────────────────────────────────────
+
+	// B2: HasInit — check if package contains init() function
+	for _, cd := range cldkPkg.CallableDeclarations {
+		if cd.Name == "init" && cd.Kind == "function" {
+			cldkPkg.HasInit = true
+			break
+		}
+	}
+
+	// B3 & B4: HasGoroutines, ReadsEnv — scan call sites in function bodies
+	envFuncs := map[string]bool{
+		"os.Getenv":       true,
+		"os.LookupEnv":    true,
+		"os.Environ":      true,
+		"os.ExpandEnv":    true,
+		"os.Setenv":       true,
+		"os.Unsetenv":     true,
+	}
+	for _, cd := range cldkPkg.CallableDeclarations {
+		if cd.Body == nil {
+			continue
+		}
+		for _, cs := range cd.Body.CallSites {
+			if cs.Kind == "go" {
+				cldkPkg.HasGoroutines = true
+			}
+			if envFuncs[cs.Target] {
+				cldkPkg.ReadsEnv = true
+			}
+		}
+	}
+	// Also check methods in type declarations
+	for _, td := range cldkPkg.TypeDeclarations {
+		for _, m := range td.Methods {
+			if m.Body == nil {
+				continue
+			}
+			for _, cs := range m.Body.CallSites {
+				if cs.Kind == "go" {
+					cldkPkg.HasGoroutines = true
+				}
+				if envFuncs[cs.Target] {
+					cldkPkg.ReadsEnv = true
+				}
+			}
+		}
+	}
+
+	// B1: BuildTags — extract //go:build constraints from file comments
+	tagSet := make(map[string]bool)
+	for _, file := range pkg.Syntax {
+		if file == nil {
+			continue
+		}
+		for _, cg := range file.Comments {
+			for _, c := range cg.List {
+				if constraint.IsGoBuild(c.Text) {
+					// Store the raw constraint expression
+					tagText := strings.TrimPrefix(c.Text, "//go:build ")
+					tagText = strings.TrimSpace(tagText)
+					if tagText != "" && !tagSet[tagText] {
+						tagSet[tagText] = true
+					}
+				}
+			}
+		}
+	}
+	if len(tagSet) > 0 {
+		for tag := range tagSet {
+			cldkPkg.BuildTags = append(cldkPkg.BuildTags, tag)
+		}
+		sort.Strings(cldkPkg.BuildTags)
 	}
 
 	return cldkPkg
@@ -856,5 +934,42 @@ func kindOfType(ts *ast.TypeSpec) string {
 		return "interface"
 	default:
 		return "named"
+	}
+}
+
+// ============================================================================
+// Post-processing: UsedByPackages (reverse import lookup)
+// ============================================================================
+
+// PopulateUsedByPackages computes the reverse import graph for all packages
+// in the symbol table. For each package P, UsedByPackages lists the project
+// packages that import P.
+func PopulateUsedByPackages(st *schema.CLDKSymbolTable) {
+	if st == nil {
+		return
+	}
+
+	// Build set of project package paths
+	projectPkgs := make(map[string]bool, len(st.Packages))
+	for pkgPath := range st.Packages {
+		projectPkgs[pkgPath] = true
+	}
+
+	// Reverse lookup: for each package, find who imports it
+	used := make(map[string][]string)
+	for importerPath, pkg := range st.Packages {
+		for _, imp := range pkg.Imports {
+			if projectPkgs[imp.Path] {
+				used[imp.Path] = append(used[imp.Path], importerPath)
+			}
+		}
+	}
+
+	// Assign to packages
+	for pkgPath, usedBy := range used {
+		if pkg, ok := st.Packages[pkgPath]; ok {
+			sort.Strings(usedBy)
+			pkg.UsedByPackages = usedBy
+		}
 	}
 }

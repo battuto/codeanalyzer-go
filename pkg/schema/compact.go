@@ -46,6 +46,14 @@ type CompactPkg struct {
 	Funcs  map[string]*CompactFunc `json:"fn,omitempty"` // functions/methods
 	Vars   map[string]string       `json:"v,omitempty"`  // name → type
 	Consts map[string]string       `json:"c,omitempty"`  // name → value
+
+	// Package-level metadata for malware/security analysis
+	Init   bool     `json:"init,omitempty"` // has init() function
+	Gor    bool     `json:"gor,omitempty"`  // starts goroutines (go statements)
+	Env    bool     `json:"env,omitempty"`  // reads environment variables
+	BT     []string `json:"bt,omitempty"`   // build tags/constraints
+	UsedBy []string `json:"ub,omitempty"`   // reverse imports: who imports this package
+	Main   bool     `json:"main,omitempty"` // reachable from main()/init() flow
 }
 
 // ============================================================================

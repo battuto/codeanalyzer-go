@@ -55,6 +55,14 @@ type CLDKPackage struct {
 	CallableDeclarations map[string]*CLDKCallable `json:"callable_declarations"`
 	Variables            map[string]*CLDKVariable `json:"variables"`
 	Constants            map[string]*CLDKConstant `json:"constants"`
+
+	// Package-level metadata for malware/security analysis
+	HasInit          bool     `json:"has_init,omitempty"`            // package contains init() function
+	HasGoroutines    bool     `json:"has_goroutines,omitempty"`      // package starts background goroutines (go statements)
+	ReadsEnv         bool     `json:"reads_env,omitempty"`           // package reads environment variables (os.Getenv, etc.)
+	BuildTags        []string `json:"build_tags,omitempty"`          // build constraints (//go:build directives)
+	UsedByPackages   []string `json:"used_by_packages,omitempty"`    // reverse imports: which project packages import this one
+	ReachableFromMain bool    `json:"reachable_from_main,omitempty"` // reachable from main() or init() via call graph
 }
 
 // CLDKImport rappresenta un import.

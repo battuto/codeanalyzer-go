@@ -330,6 +330,22 @@ func runAnalysis(cfg config) error {
 		}
 	}
 
+	// ──────────────────────────────────────────────────────────────────
+	// Post-processing: package-level metadata enrichment
+	// ──────────────────────────────────────────────────────────────────
+
+	if analysis.SymbolTable != nil {
+		// B5: Reverse import lookup (used_by_packages)
+		logVerbose(cfg, "Computing reverse imports...")
+		symbols.PopulateUsedByPackages(analysis.SymbolTable)
+
+		// B6: Reachable from main/init flow
+		if analysis.CallGraph != nil {
+			logVerbose(cfg, "Computing main/init reachability...")
+			populateReachableFromMain(analysis.SymbolTable, analysis.CallGraph)
+		}
+	}
+
 	// Calcola durata
 	analysis.Metadata.AnalysisDurationMs = time.Since(startTime).Milliseconds()
 
@@ -357,6 +373,60 @@ func runAnalysis(cfg config) error {
 	logVerbose(cfg, "Analysis completed in %dms", analysis.Metadata.AnalysisDurationMs)
 
 	return nil
+}
+
+// populateReachableFromMain performs BFS on the call graph starting from main()
+// and init() functions, marking all reachable packages in the symbol table.
+func populateReachableFromMain(st *schema.CLDKSymbolTable, cg *schema.CLDKCallGraph) {
+	if st == nil || cg == nil {
+		return
+	}
+
+	// Build adjacency list from call graph edges
+	adj := make(map[string][]string) // node ID → list of target node IDs
+	for _, edge := range cg.Edges {
+		adj[edge.Source] = append(adj[edge.Source], edge.Target)
+	}
+
+	// Find seed nodes: any node named "main" or "init"
+	var seeds []string
+	for _, node := range cg.Nodes {
+		if node.Name == "main" || node.Name == "init" {
+			seeds = append(seeds, node.ID)
+		}
+	}
+
+	// BFS from seeds
+	visited := make(map[string]bool)
+	queue := seeds
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+		if visited[current] {
+			continue
+		}
+		visited[current] = true
+		for _, next := range adj[current] {
+			if !visited[next] {
+				queue = append(queue, next)
+			}
+		}
+	}
+
+	// Map visited node IDs → package paths
+	reachablePkgs := make(map[string]bool)
+	for _, node := range cg.Nodes {
+		if visited[node.ID] {
+			reachablePkgs[node.Package] = true
+		}
+	}
+
+	// Mark packages in symbol table
+	for pkgPath, pkg := range st.Packages {
+		if reachablePkgs[pkgPath] {
+			pkg.ReachableFromMain = true
+		}
+	}
 }
 
 // ============================================================================
