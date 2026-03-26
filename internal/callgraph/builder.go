@@ -155,8 +155,9 @@ func Build(result *loader.LoadResult, cfg Config) (*schema.CLDKCallGraph, error)
 					Source: srcID,
 					Target: dstID,
 				}
-				// Posizione del call site
-				if cfg.EmitPositions != "minimal" && e.Site != nil {
+				// Posizione del call site — sempre emessa (serve per
+				// correlare caller↔callee a livello di sorgente)
+				if e.Site != nil {
 					pos := fset.Position(e.Site.Pos())
 					if pos.IsValid() {
 						file := pos.Filename
