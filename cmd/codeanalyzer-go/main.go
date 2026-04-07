@@ -11,15 +11,18 @@ import (
 
 	"github.com/codellm-devkit/codeanalyzer-go/internal/callgraph"
 	"github.com/codellm-devkit/codeanalyzer-go/internal/loader"
+	"github.com/codellm-devkit/codeanalyzer-go/internal/obfuscation"
 	"github.com/codellm-devkit/codeanalyzer-go/internal/output"
 	"github.com/codellm-devkit/codeanalyzer-go/internal/pdg"
 	"github.com/codellm-devkit/codeanalyzer-go/internal/sdg"
+	gostrings "github.com/codellm-devkit/codeanalyzer-go/internal/strings"
+	"github.com/codellm-devkit/codeanalyzer-go/internal/supplychain"
 	"github.com/codellm-devkit/codeanalyzer-go/internal/symbols"
 	"github.com/codellm-devkit/codeanalyzer-go/pkg/schema"
 )
 
 const (
-	version = "2.0.0"
+	version = "2.1.0"
 
 	// Analysis levels
 	levelSymbolTable = "symbol_table"
@@ -47,6 +50,7 @@ type config struct {
 	verbose       bool
 	quiet         bool
 	showVersion   bool
+	security      bool // enable security analysis (strings, supply chain, obfuscation)
 
 	// Flag legacy (retrocompatibilità)
 	root string
@@ -106,6 +110,7 @@ func parseFlags() config {
 	flag.BoolVar(&cfg.quiet, "quiet", false, "Suppress all non-error output")
 	flag.BoolVar(&cfg.quiet, "q", false, "Suppress non-error output (shorthand)")
 	flag.BoolVar(&cfg.showVersion, "version", false, "Show version and exit")
+	flag.BoolVar(&cfg.security, "security", false, "Enable security analysis: string extraction, supply chain vectors, obfuscation metrics")
 
 	// Flag legacy (retrocompatibilità deprecata)
 	flag.StringVar(&cfg.root, "root", "", "[DEPRECATED] Use --input instead")
@@ -258,6 +263,45 @@ func runAnalysis(cfg config) error {
 		}
 		analysis.SymbolTable = symbols.Extract(result, symbolCfg)
 		logVerbose(cfg, "Extracted %d packages", len(analysis.SymbolTable.Packages))
+
+		// Security analysis (opt-in via --security flag)
+		if cfg.security {
+			logVerbose(cfg, "Running security analysis...")
+			strCfg := gostrings.DefaultConfig()
+			for _, pkg := range result.Packages {
+				if pkg == nil {
+					continue
+				}
+				cldkPkg, ok := analysis.SymbolTable.Packages[pkg.PkgPath]
+				if !ok {
+					continue
+				}
+
+				// String literal extraction
+				cldkPkg.StringLiterals = gostrings.Extract(pkg, result.Fset, result.Root, strCfg)
+
+				// Supply chain vector detection
+				cldkPkg.SupplyChainVectors = supplychain.Detect(pkg, result.Fset, result.Root)
+
+				// Obfuscation metrics
+				cldkPkg.ObfuscationMetrics = obfuscation.Compute(pkg)
+
+				// Enrich obfuscation metrics with string entropy data
+				if cldkPkg.ObfuscationMetrics != nil && len(cldkPkg.StringLiterals) > 0 {
+					totalEntropy := 0.0
+					highEntropy := 0
+					for _, sl := range cldkPkg.StringLiterals {
+						totalEntropy += sl.Entropy
+						if sl.Entropy > 4.5 {
+							highEntropy++
+						}
+					}
+					cldkPkg.ObfuscationMetrics.StringEntropyAvg = totalEntropy / float64(len(cldkPkg.StringLiterals))
+					cldkPkg.ObfuscationMetrics.HighEntropyStrings = highEntropy
+				}
+			}
+			logVerbose(cfg, "Security analysis completed")
+		}
 	}
 
 	// Costruisci call graph se richiesto (SDG lo richiede)

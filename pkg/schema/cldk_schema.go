@@ -63,6 +63,11 @@ type CLDKPackage struct {
 	BuildTags        []string `json:"build_tags,omitempty"`          // build constraints (//go:build directives)
 	UsedByPackages   []string `json:"used_by_packages,omitempty"`    // reverse imports: which project packages import this one
 	ReachableFromMain bool    `json:"reachable_from_main,omitempty"` // reachable from main() or init() via call graph
+
+	// Extended security analysis (opt-in via flags)
+	StringLiterals     []CLDKStringLiteral  `json:"string_literals,omitempty"`      // extracted string literals with classification
+	SupplyChainVectors []SupplyChainVector  `json:"supply_chain_vectors,omitempty"` // detected supply chain attack vectors
+	ObfuscationMetrics *ObfuscationMetrics  `json:"obfuscation_metrics,omitempty"`  // code obfuscation indicators
 }
 
 // CLDKImport rappresenta un import.
@@ -243,5 +248,41 @@ type CLDKCGEdge struct {
 	Source   string        `json:"source"`
 	Target   string        `json:"target"`
 	CallSite *CLDKPosition `json:"call_site,omitempty"`
-	Kind     string        `json:"kind,omitempty"` // call|defer|go
+	Kind     string        `json:"kind,omitempty"`     // call|defer|go
+	Category string        `json:"category,omitempty"` // execution|network|filesystem|crypto|process|reflection|unsafe|plugin|cgo
 }
+
+// ============================================================================
+// Security Analysis Types
+// ============================================================================
+
+// CLDKStringLiteral rappresenta una stringa letterale estratta dal codice sorgente.
+type CLDKStringLiteral struct {
+	Value    string        `json:"value"`              // valore della stringa
+	Category string        `json:"category"`           // url|ip|path_win|path_unix|base64|command|crypto_wallet|domain|registry|other
+	Entropy  float64       `json:"entropy"`            // Shannon entropy
+	Scope    string        `json:"scope"`              // qualified name della funzione contenitrice
+	Position *CLDKPosition `json:"position,omitempty"` // posizione nel sorgente
+}
+
+// SupplyChainVector rappresenta un potenziale vettore di attacco supply chain.
+type SupplyChainVector struct {
+	Kind     string        `json:"kind"`               // go_generate|go_linkname|init_side_effect|global_side_effect|plugin_load|cgo_usage|unsafe_usage
+	Detail   string        `json:"detail"`             // contenuto specifico (es. il comando go:generate)
+	Severity string        `json:"severity"`           // critical|high|medium|low
+	File     string        `json:"file,omitempty"`     // file sorgente
+	Position *CLDKPosition `json:"position,omitempty"` // posizione nel sorgente
+}
+
+// ObfuscationMetrics contiene indicatori euristici di offuscamento del codice.
+type ObfuscationMetrics struct {
+	AvgFuncNameLen     float64 `json:"avg_func_name_len"`              // lunghezza media nomi funzioni
+	AvgVarNameLen      float64 `json:"avg_var_name_len"`               // lunghezza media nomi variabili/parametri
+	ShortNamesRatio    float64 `json:"short_names_ratio"`              // percentuale nomi ≤ 2 chars (esclude receiver)
+	DocCoverage        float64 `json:"doc_coverage"`                   // percentuale funzioni esportate con documentazione
+	StringEntropyAvg   float64 `json:"string_entropy_avg,omitempty"`   // entropia media delle stringhe
+	HighEntropyStrings int     `json:"high_entropy_strings,omitempty"` // conteggio stringhe con entropia > 4.5
+	XorOperations      int     `json:"xor_operations"`                 // conteggio operazioni XOR nel package
+	HasGarblePatterns  bool    `json:"has_garble_patterns,omitempty"`  // nomi funzione con pattern tipici di Garble
+}
+

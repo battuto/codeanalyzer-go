@@ -54,6 +54,11 @@ type CompactPkg struct {
 	BT     []string `json:"bt,omitempty"`   // build tags/constraints
 	UsedBy []string `json:"ub,omitempty"`   // reverse imports: who imports this package
 	Main   bool     `json:"main,omitempty"` // reachable from main()/init() flow
+
+	// Extended security analysis
+	SL  []CompactStringLit     `json:"sl,omitempty"`  // string literals (classified)
+	SC  []CompactSCVector      `json:"sc,omitempty"`  // supply chain vectors
+	Obf *CompactObfMetrics     `json:"obf,omitempty"` // obfuscation metrics
 }
 
 // ============================================================================
@@ -91,6 +96,37 @@ type CompactFunc struct {
 type CompactCallGraph struct {
 	Algo  string      `json:"a"` // algorithm (cha|rta)
 	Edges [][2]string `json:"e"` // [[source, target], ...]
+}
+
+// ============================================================================
+// Security Analysis Compact Types
+// ============================================================================
+
+// CompactStringLit rappresenta una stringa classificata in formato compatto.
+// Solo stringhe con categoria != "other" vengono incluse.
+type CompactStringLit struct {
+	V string  `json:"v"`           // value (truncated)
+	C string  `json:"c"`           // category
+	E float64 `json:"e,omitempty"` // entropy
+	S string  `json:"s,omitempty"` // scope (function qualified name)
+}
+
+// CompactSCVector rappresenta un vettore supply chain in formato compatto.
+type CompactSCVector struct {
+	K string `json:"k"`           // kind
+	D string `json:"d"`           // detail
+	S string `json:"s"`           // severity
+	F string `json:"f,omitempty"` // file
+}
+
+// CompactObfMetrics rappresenta le metriche di offuscamento in formato compatto.
+type CompactObfMetrics struct {
+	FnLen  float64 `json:"fl"`            // avg func name length
+	VrLen  float64 `json:"vl"`            // avg var name length
+	Short  float64 `json:"sr"`            // short names ratio %
+	Doc    float64 `json:"dc"`            // doc coverage %
+	Xor    int     `json:"xor,omitempty"` // xor operations count
+	Garble bool    `json:"gb,omitempty"`  // garble patterns detected
 }
 
 // ============================================================================

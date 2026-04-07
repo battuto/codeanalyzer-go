@@ -209,6 +209,42 @@ func convertPackage(pkg *CLDKPackage) *CompactPkg {
 	}
 	cp.Main = pkg.ReachableFromMain
 
+	// Converti extended security fields
+	if len(pkg.StringLiterals) > 0 {
+		for _, sl := range pkg.StringLiterals {
+			if sl.Category != "other" { // in compact mode, solo stringhe classificate
+				cp.SL = append(cp.SL, CompactStringLit{
+					V: truncateDoc(sl.Value), // riusa truncation a 200 chars
+					C: sl.Category,
+					E: sl.Entropy,
+					S: sl.Scope,
+				})
+			}
+		}
+	}
+	if len(pkg.SupplyChainVectors) > 0 {
+		cp.SC = make([]CompactSCVector, len(pkg.SupplyChainVectors))
+		for i, v := range pkg.SupplyChainVectors {
+			cp.SC[i] = CompactSCVector{
+				K: v.Kind,
+				D: truncateDoc(v.Detail),
+				S: v.Severity,
+				F: v.File,
+			}
+		}
+	}
+	if pkg.ObfuscationMetrics != nil {
+		m := pkg.ObfuscationMetrics
+		cp.Obf = &CompactObfMetrics{
+			FnLen:  m.AvgFuncNameLen,
+			VrLen:  m.AvgVarNameLen,
+			Short:  m.ShortNamesRatio,
+			Doc:    m.DocCoverage,
+			Xor:    m.XorOperations,
+			Garble: m.HasGarblePatterns,
+		}
+	}
+
 	return cp
 }
 

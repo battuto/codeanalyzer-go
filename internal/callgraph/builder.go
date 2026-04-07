@@ -182,6 +182,8 @@ func Build(result *loader.LoadResult, cfg Config) (*schema.CLDKCallGraph, error)
 						edge.Kind = "call"
 					}
 				}
+				// Classifica la categoria di sicurezza dell'API target
+				edge.Category = categorizeAPI(dstID)
 				edgeSet[edgeKey] = edge
 			}
 		}
@@ -294,4 +296,126 @@ func normalizeReceiverType(t, pkg string) string {
 		return t[idx+1:]
 	}
 	return t
+}
+
+// ============================================================================
+// API Category Classification
+// ============================================================================
+
+// apiCategories mappa API stdlib Go a categorie di sicurezza.
+// Solo le API rilevanti per malware/security analysis sono incluse.
+var apiCategories = map[string]string{
+	// execution — process spawning
+	"os/exec.Command":        "execution",
+	"os/exec.CommandContext": "execution",
+	"os.StartProcess":        "execution",
+	"syscall.Exec":            "execution",
+	"syscall.ForkExec":        "execution",
+	"syscall.StartProcess":    "execution",
+
+	// network — outbound/inbound connections
+	"net.Dial":           "network",
+	"net.DialTimeout":    "network",
+	"net.Listen":         "network",
+	"net.ListenPacket":   "network",
+	"net.ResolveIPAddr":  "network",
+	"net.ResolveTCPAddr": "network",
+	"net.ResolveUDPAddr": "network",
+	"net/http.Get":       "network",
+	"net/http.Post":      "network",
+	"net/http.PostForm":  "network",
+	"net/http.Head":      "network",
+	"net/http.NewRequest":"network",
+	"net/http.ListenAndServe":     "network",
+	"net/http.ListenAndServeTLS":  "network",
+
+	// filesystem — file I/O
+	"os.Create":     "filesystem",
+	"os.Open":       "filesystem",
+	"os.OpenFile":   "filesystem",
+	"os.ReadFile":   "filesystem",
+	"os.WriteFile":  "filesystem",
+	"os.Remove":     "filesystem",
+	"os.RemoveAll":  "filesystem",
+	"os.Rename":     "filesystem",
+	"os.Mkdir":      "filesystem",
+	"os.MkdirAll":   "filesystem",
+	"os.Chmod":      "filesystem",
+	"os.Chown":      "filesystem",
+	"os.Link":       "filesystem",
+	"os.Symlink":    "filesystem",
+	"io/ioutil.ReadFile":  "filesystem",
+	"io/ioutil.WriteFile": "filesystem",
+	"io/ioutil.TempFile":  "filesystem",
+
+	// crypto — cryptographic operations
+	"crypto/aes.NewCipher":        "crypto",
+	"crypto/cipher.NewGCM":        "crypto",
+	"crypto/cipher.NewCBCEncrypter":"crypto",
+	"crypto/cipher.NewCBCDecrypter":"crypto",
+	"crypto/cipher.NewCFBEncrypter":"crypto",
+	"crypto/cipher.NewCFBDecrypter":"crypto",
+	"crypto/rsa.GenerateKey":       "crypto",
+	"crypto/rsa.EncryptOAEP":       "crypto",
+	"crypto/rsa.DecryptOAEP":       "crypto",
+	"crypto/rsa.EncryptPKCS1v15":   "crypto",
+	"crypto/rsa.DecryptPKCS1v15":   "crypto",
+	"crypto/rand.Read":             "crypto",
+	"crypto/x509.ParseCertificate": "crypto",
+
+	// process — process/signal management
+	"os.Exit":          "process",
+	"os/signal.Notify": "process",
+	"syscall.Kill":     "process",
+	"syscall.Getpid":   "process",
+	"syscall.Getppid":  "process",
+	"runtime.Goexit":   "process",
+
+	// reflection — dynamic dispatch
+	"reflect.ValueOf":    "reflection",
+	"reflect.TypeOf":     "reflection",
+	"reflect.New":        "reflection",
+	"reflect.MakeFunc":   "reflection",
+
+	// unsafe — memory manipulation
+	"unsafe.Pointer":  "unsafe",
+	"unsafe.Sizeof":   "unsafe",
+	"unsafe.Offsetof": "unsafe",
+
+	// plugin — dynamic code loading
+	"plugin.Open": "plugin",
+}
+
+// categorizeAPI restituisce la categoria di sicurezza di un target del call graph.
+// Restituisce stringa vuota ("") se l'API non appare nella mappa.
+func categorizeAPI(target string) string {
+	// Cerca prima nel match esatto
+	if cat, ok := apiCategories[target]; ok {
+		return cat
+	}
+
+	// Fallback: cerca per prefisso (per metodi su tipi)
+	for api, cat := range apiCategories {
+		if strings.HasSuffix(target, "."+lastPart(api)) && strings.Contains(target, firstPart(api)) {
+			return cat
+		}
+	}
+
+	return ""
+}
+
+// lastPart restituisce l'ultima parte dopo l'ultimo punto.
+func lastPart(s string) string {
+	if idx := strings.LastIndex(s, "."); idx >= 0 {
+		return s[idx+1:]
+	}
+	return s
+}
+
+// firstPart restituisce la prima parte prima dell'ultimo punto.
+func firstPart(s string) string {
+	if idx := strings.LastIndex(s, "."); idx >= 0 {
+		return s[:idx]
+	}
+	return s
 }
